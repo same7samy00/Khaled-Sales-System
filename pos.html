@@ -86,7 +86,8 @@
                         </div>
                     </div>
 
-                    <div class="payment-options" style="display:none;"> <h3>طريقة الدفع</h3>
+                    <div class="payment-options" style="display:none;">
+                        <h3>طريقة الدفع</h3>
                         <select id="paymentMethod" class="form-control">
                             <option value="cash">نقداً</option>
                         </select>
@@ -106,8 +107,8 @@
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
-        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, writeBatch, getDoc, getSettings, canAccessSalesHistory, canAccessSettings } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan } from './shared.js';
+        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, getSettings, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
 
         const productSearchInput = document.getElementById('productSearchInput');
         const searchResultsDiv = document.getElementById('searchResults');
@@ -129,7 +130,6 @@
         let cart = [];
         let invoiceSettings = {};
 
-        // Fetch all products on page load
         async function fetchAllProducts() {
             try {
                 const productQuerySnapshot = await getDocs(collection(db, "products"));
@@ -140,12 +140,10 @@
             }
         }
 
-        // Load invoice settings
         async function loadInvoiceSettings() {
             invoiceSettings = getSettings();
         }
 
-        // Display search results
         function displaySearchResults(query) {
             searchResultsDiv.innerHTML = '';
             searchResultsDiv.style.display = 'none';
@@ -178,7 +176,6 @@
             searchResultsDiv.style.display = 'block';
         }
 
-        // Add product to cart
         function addProductToCart(product, quantityToAdd = 1) {
             const existingProductIndex = cart.findIndex(item => item.id === product.id);
             const availableStock = parseFloat(product.quantity || 0);
@@ -201,7 +198,6 @@
             showNotification(`${product.name} أضيف إلى الفاتورة.`, 'success', 2000);
         }
 
-        // Render products in cart table
         function renderCart() {
             cartTableBody.innerHTML = '';
             if (cart.length === 0) {
@@ -226,22 +222,21 @@
             updateTotals();
         }
 
-        // Update subtotal, grand total, discount, and change
         function updateTotals() {
             let subTotal = cart.reduce((sum, item) => sum + (parseFloat(item.quantity || 0) * parseFloat(item.pricePerUnit || 0)), 0);
             
             let discountPercentage = parseFloat(discountInput.value) || 0;
             if (discountPercentage < 0) discountPercentage = 0;
             if (discountPercentage > 100) discountPercentage = 100;
-            discountInput.value = discountPercentage; // Keep input value clamped
+            discountInput.value = discountPercentage;
 
             const discountAmount = subTotal * (discountPercentage / 100);
             let grandTotal = subTotal - discountAmount;
-            if (grandTotal < 0) grandTotal = 0; // Prevent negative total
+            if (grandTotal < 0) grandTotal = 0;
 
             let amountPaid = parseFloat(amountPaidInput.value) || 0;
             if (amountPaid < 0) amountPaid = 0;
-            amountPaidInput.value = amountPaid; // Keep input value clamped
+            amountPaidInput.value = amountPaid;
 
             let changeDue = amountPaid - grandTotal;
 
@@ -250,14 +245,12 @@
             changeDueSpan.textContent = changeDue.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' });
         }
 
-        // Remove product from cart
         function removeFromCart(productId) {
             cart = cart.filter(item => item.id !== productId);
             renderCart();
             showNotification('تمت إزالة المنتج من الفاتورة.', 'info', 2000);
         }
 
-        // Update cart item quantity from input field
         function updateCartItemQuantity(productId, newQuantity) {
             const itemIndex = cart.findIndex(item => item.id === productId);
             if (itemIndex > -1) {
@@ -274,7 +267,6 @@
             }
         }
 
-        // Complete sale process
         async function completeSale() {
             if (cart.length === 0) {
                 showNotification("الفاتورة فارغة. يرجى إضافة منتجات.", "warning");
@@ -348,7 +340,7 @@
                         totalAmount: grandTotalValue,
                         amountPaid: amountPaidValue,
                         changeDue: parseFloat(changeDueSpan.textContent.replace(/[^\d.-]/g, '')),
-                        paymentMethod: document.getElementById('paymentMethod').value, // This will always be 'cash' now
+                        paymentMethod: 'cash', // Always cash as option is removed
                         saleDate: new Date(),
                     });
 
@@ -371,7 +363,6 @@
             });
         }
 
-        // Cancel sale
         function cancelSale() {
             showConfirmation("هل أنت متأكد من إلغاء الفاتورة؟ سيتم مسح جميع المنتجات.", () => {
                 cart = [];
@@ -382,7 +373,6 @@
             });
         }
 
-        // Print Invoice Function
         function printInvoice() {
             if (cart.length === 0) {
                 showNotification("لا توجد منتجات لطباعتها في الفاتورة.", "warning");
@@ -393,7 +383,6 @@
             invoiceWindow.document.write('<html><head><title>فاتورة شيخ العرب</title>');
             invoiceWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">');
             invoiceWindow.document.write('<style>');
-            // Include only the necessary print styles
             invoiceWindow.document.write(`
                 body { font-family: 'Cairo', sans-serif; margin: 20px; color: #333; direction: rtl; font-size: 10pt; }
                 .invoice-header { text-align: center; margin-bottom: 20px; }
@@ -411,7 +400,6 @@
             `);
             invoiceWindow.document.write('</style></head><body>');
 
-            // Invoice Content
             invoiceWindow.document.write('<div class="invoice-header">');
             invoiceWindow.document.write(`<h2>${invoiceSettings.storeName || 'شيخ العرب'}</h2>`);
             invoiceWindow.document.write(`<p>${invoiceSettings.invoiceAddress || 'عنوان المتجر'}</p>`);
@@ -441,7 +429,7 @@
             invoiceWindow.document.write(`<div class="total-amount"><span>الإجمالي الكلي:</span><span>${grandTotalSpan.textContent}</span></div>`);
             invoiceWindow.document.write(`<div><span>المبلغ المدفوع:</span><span>${parseFloat(amountPaidInput.value).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' })}</span></div>`);
             invoiceWindow.document.write(`<div><span>الباقي للعميل:</span><span>${changeDueSpan.textContent}</span></div>`);
-            invoiceWindow.document.write(`<div><span>طريقة الدفع:</span><span>${document.getElementById('paymentMethod').selectedOptions[0].text}</span></div>`);
+            invoiceWindow.document.write(`<div><span>طريقة الدفع:</span><span>نقداً</span></div>`); // Fixed to نقداً
             invoiceWindow.document.write('</div>');
 
             invoiceWindow.document.write(`<p class="thank-you">${invoiceSettings.invoiceThankYou || 'شكراً لتسوقكم من شيخ العرب!'}</p>`);
@@ -450,7 +438,6 @@
             invoiceWindow.print();
         }
 
-        // Event Listeners
         productSearchInput.addEventListener('input', (e) => displaySearchResults(e.target.value));
         document.addEventListener('click', (e) => {
             if (!searchResultsDiv.contains(e.target) && e.target !== productSearchInput) {
@@ -521,7 +508,6 @@
             }
         });
 
-        // Permission checks for navigation links
         function updateNavigationPermissions() {
             if (!canAccessSalesHistory()) {
                 salesHistoryLink.style.display = 'none';
@@ -535,7 +521,6 @@
             }
         }
 
-        // Initial load and listen for settings changes
         getSettings().then(() => {
             fetchAllProducts();
             loadInvoiceSettings();
