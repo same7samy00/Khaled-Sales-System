@@ -142,14 +142,12 @@
         import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        // DOM elements for General Settings
         const storeNameInput = document.getElementById('storeName');
         const invoiceAddressInput = document.getElementById('invoiceAddress');
         const invoicePhoneInput = document.getElementById('invoicePhone');
         const invoiceThankYouInput = document.getElementById('invoiceThankYou');
         const saveGeneralSettingsBtn = document.getElementById('saveGeneralSettings');
 
-        // DOM elements for Password Changes
         const currentAuthPasswordInput = document.getElementById('currentAuthPassword');
         const newAuthPasswordInput = document.getElementById('newAuthPassword');
         const changeAuthPasswordBtn = document.getElementById('changeAuthPassword');
@@ -164,7 +162,6 @@
         const changeSettingsPasswordBtn = document.getElementById('changeSettingsPassword');
         const newSettingsPasswordError = document.getElementById('newSettingsPasswordError');
 
-        // DOM elements for Feature Toggles
         const toggleAddProducts = document.getElementById('toggleAddProducts');
         const toggleEditProducts = document.getElementById('toggleEditProducts');
         const toggleDeleteProducts = document.getElementById('toggleDeleteProducts');
@@ -173,34 +170,32 @@
         const toggleAccessSettings = document.getElementById('toggleAccessSettings');
         const saveFeatureSettingsBtn = document.getElementById('saveFeatureSettings');
 
-        // Password Modal elements
         const passwordModal = document.getElementById('passwordModal');
         const passwordInput = document.getElementById('passwordInput');
         const passwordError = document.getElementById('passwordError');
         const submitPasswordBtn = document.getElementById('submitPasswordBtn');
 
-        let currentStoreSettings = {}; // Holds the current settings from Firebase
+        let currentStoreSettings = {};
 
-        // Function to check password before accessing the page
         async function checkPassword() {
-            const settings = getSettings(); // Get settings synchronously
-            const SETTINGS_ADMIN_PASSWORD = settings.settingsPassword; // Get password from settings
+            const settings = getSettings();
+            const SETTINGS_ADMIN_PASSWORD = settings.settingsPassword;
 
-            if (!canAccessSettings()) { // Check permission first
+            if (!canAccessSettings()) {
                 showNotification("ليس لديك صلاحية للدخول إلى الإعدادات.", "error");
-                setTimeout(() => window.location.href = 'dashboard.html', 1500); // Redirect if no permission
+                setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 return;
             }
             
-            passwordModal.style.display = 'flex'; // Show modal
-            passwordInput.value = ''; // Clear previous input
-            passwordError.textContent = ''; // Clear previous errors
+            passwordModal.style.display = 'flex';
+            passwordInput.value = '';
+            passwordError.textContent = '';
             passwordInput.focus();
 
             submitPasswordBtn.onclick = () => {
                 if (passwordInput.value === SETTINGS_ADMIN_PASSWORD) {
                     passwordModal.style.display = 'none';
-                    loadSettingsToForm(); // Load settings data into the form fields
+                    loadSettingsToForm();
                 } else {
                     passwordError.textContent = "كلمة المرور غير صحيحة.";
                 }
@@ -213,9 +208,8 @@
             });
         }
 
-        // Load settings data into form fields
         async function loadSettingsToForm() {
-            currentStoreSettings = getSettings(); // Get the latest settings
+            currentStoreSettings = getSettings();
 
             storeNameInput.value = currentStoreSettings.storeName || '';
             invoiceAddressInput.value = currentStoreSettings.invoiceAddress || '';
@@ -233,9 +227,6 @@
             toggleAccessSettings.checked = currentStoreSettings.features?.canAccessSettings ?? true;
         }
 
-        // --- Event Listeners for Saving Settings ---
-
-        // Save General Settings
         saveGeneralSettingsBtn.addEventListener('click', async () => {
             showConfirmation("هل أنت متأكد من حفظ إعدادات المتجر العامة؟", async () => {
                 saveGeneralSettingsBtn.disabled = true;
@@ -258,7 +249,6 @@
             });
         });
 
-        // Change Authentication Password
         changeAuthPasswordBtn.addEventListener('click', async () => {
             const user = auth.currentUser;
             if (!user) {
@@ -307,7 +297,6 @@
             });
         });
 
-        // Change Sales History Password
         changeSalesPasswordBtn.addEventListener('click', async () => {
             const newSalesPassword = newSalesPasswordInput.value.trim();
             newSalesPasswordError.textContent = '';
@@ -324,7 +313,7 @@
                         salesHistoryPassword: newSalesPassword
                     });
                     showNotification("تم تغيير كلمة سر سجل المبيعات بنجاح!", "success");
-                    newSalesPasswordInput.value = newSalesPassword; // Update field
+                    newSalesPasswordInput.value = newSalesPassword;
                 } catch (e) {
                     console.error("Error changing sales password:", e);
                     showNotification("فشل تغيير كلمة سر سجل المبيعات.", "error");
@@ -335,7 +324,6 @@
             });
         });
 
-        // Change Settings Password
         changeSettingsPasswordBtn.addEventListener('click', async () => {
             const newSettingsPassword = newSettingsPasswordInput.value.trim();
             newSettingsPasswordError.textContent = '';
@@ -352,7 +340,7 @@
                         settingsPassword: newSettingsPassword
                     });
                     showNotification("تم تغيير كلمة سر الإعدادات بنجاح!", "success");
-                    newSettingsPasswordInput.value = newSettingsPassword; // Update field
+                    newSettingsPasswordInput.value = newSettingsPassword;
                 } catch (e) {
                     console.error("Error changing settings password:", e);
                     showNotification("فشل تغيير كلمة سر الإعدادات.", "error");
@@ -363,7 +351,6 @@
             });
         });
 
-        // Save Feature Settings
         saveFeatureSettingsBtn.addEventListener('click', async () => {
             showConfirmation("هل أنت متأكد من حفظ صلاحيات الميزات؟", async () => {
                 saveFeatureSettingsBtn.disabled = true;
@@ -390,7 +377,6 @@
             });
         });
 
-        // Permission checks for navigation links
         function updateNavigationPermissions() {
             const salesHistoryLink = document.getElementById('salesHistoryLink');
             const settingsLink = document.getElementById('settingsLink');
@@ -398,10 +384,9 @@
             if (settingsLink) settingsLink.style.display = canAccessSettings() ? '' : 'none';
         }
 
-        // Initial check for password when page loads, then load settings
         getSettings().then(() => {
-            updateNavigationPermissions(); // Update nav links based on initial settings
-            checkPassword(); // This will trigger loadSettingsToForm after successful auth
+            updateNavigationPermissions();
+            checkPassword();
         });
     </script>
 </body>
