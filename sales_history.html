@@ -100,7 +100,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, getSettings, canDeleteSales, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
+        import { db, showNotification, showConfirmation, getSettings, loadSettings, canDeleteSales, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
 
         const salesTableBody = document.getElementById('salesTableBody');
         const salesDetailsModal = document.getElementById('salesDetailsModal');
@@ -334,7 +334,7 @@
             }
         }
 
-        getSettings().then(() => {
+        loadSettings().then(() => { // انتظر تحميل الإعدادات
             updateNavigationPermissions();
             checkPassword();
         });
