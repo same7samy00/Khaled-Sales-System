@@ -108,7 +108,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, getSettings, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
+        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
 
         const productSearchInput = document.getElementById('productSearchInput');
         const searchResultsDiv = document.getElementById('searchResults');
@@ -141,7 +141,7 @@
         }
 
         async function loadInvoiceSettings() {
-            invoiceSettings = getSettings();
+            invoiceSettings = getSettings(); // احصل على الإعدادات بعد تحميلها
         }
 
         function displaySearchResults(query) {
@@ -429,7 +429,7 @@
             invoiceWindow.document.write(`<div class="total-amount"><span>الإجمالي الكلي:</span><span>${grandTotalSpan.textContent}</span></div>`);
             invoiceWindow.document.write(`<div><span>المبلغ المدفوع:</span><span>${parseFloat(amountPaidInput.value).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' })}</span></div>`);
             invoiceWindow.document.write(`<div><span>الباقي للعميل:</span><span>${changeDueSpan.textContent}</span></div>`);
-            invoiceWindow.document.write(`<div><span>طريقة الدفع:</span><span>نقداً</span></div>`); // Fixed to نقداً
+            invoiceWindow.document.write(`<div><span>طريقة الدفع:</span><span>نقداً</span></div>`);
             invoiceWindow.document.write('</div>');
 
             invoiceWindow.document.write(`<p class="thank-you">${invoiceSettings.invoiceThankYou || 'شكراً لتسوقكم من شيخ العرب!'}</p>`);
@@ -447,7 +447,7 @@
 
         scanProductBtn.addEventListener('click', () => requestScan('pos_scan'));
 
-        listenToScannerSession(async (scannedValue, purpose) => {
+        listenToScannerSession((scannedValue, purpose) => {
             if (purpose === 'pos_scan' && scannedValue) {
                 productSearchInput.value = scannedValue;
                 showNotification(`تم مسح الباركود: ${scannedValue}`, 'success', 1500);
@@ -521,7 +521,7 @@
             }
         }
 
-        getSettings().then(() => {
+        loadSettings().then(() => { // انتظر تحميل الإعدادات
             fetchAllProducts();
             loadInvoiceSettings();
             updateNavigationPermissions();
