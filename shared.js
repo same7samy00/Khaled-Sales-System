@@ -1,6 +1,6 @@
 // --- SHARED JAVASCRIPT (shared.js) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, updatePassword, updateEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import { getFirestore, doc, onSnapshot, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 // --- CONFIG (MUST BE IDENTICAL EVERYWHERE) ---
@@ -13,8 +13,8 @@ const firebaseConfig = {
     appId: "1:937788650384:web:6451225d00e648f3a0b915",
     measurementId: "G-ZGC9EQ55SL"
 };
-const SHARED_SCANNER_SESSION_ID = "YOUR_STORE_UNIQUE_SCANNER_ID_12345"; // Keep this unique for your store
-const DEFAULT_PASSWORD = "010274"; // Unified default password
+const SHARED_SCANNER_SESSION_ID = "YOUR_STORE_UNIQUE_SCANNER_ID_12345";
+const DEFAULT_PASSWORD = "010274"; 
 
 // --- FIREBASE INITIALIZATION ---
 const app = initializeApp(firebaseConfig);
@@ -28,27 +28,26 @@ let settingsUnsubscribe = null;
 
 export async function loadSettings() {
     return new Promise((resolve) => {
-        if (settingsUnsubscribe) settingsUnsubscribe(); // Unsubscribe from previous listener
+        if (settingsUnsubscribe) settingsUnsubscribe(); 
 
         settingsUnsubscribe = onSnapshot(settingsDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 currentSettings = docSnap.data();
             } else {
-                // Default settings if none exist
                 currentSettings = {
                     storeName: "شيخ العرب",
                     invoiceAddress: "عنوان المتجر",
                     invoicePhone: "رقم الهاتف",
                     invoiceThankYou: "شكراً لتسوقكم من شيخ العرب!",
-                    salesHistoryPassword: DEFAULT_PASSWORD, // Unified password
-                    settingsPassword: DEFAULT_PASSWORD, // Unified password
+                    salesHistoryPassword: DEFAULT_PASSWORD,
+                    settingsPassword: DEFAULT_PASSWORD,
                     features: {
                         canAddProducts: true,
                         canEditProducts: true,
                         canDeleteProducts: true,
-                        canAccessSalesHistory: true, // New feature toggle
+                        canAccessSalesHistory: true, 
                         canDeleteSales: true,
-                        canAccessSettings: true // New feature toggle
+                        canAccessSettings: true 
                     }
                 };
                 setDoc(settingsDocRef, currentSettings, { merge: true }).catch(e => console.error("Error setting default settings:", e));
@@ -58,7 +57,7 @@ export async function loadSettings() {
         }, (error) => {
             console.error("Error listening to settings:", error);
             showNotification("خطأ في تحميل الإعدادات.", "error");
-            resolve(currentSettings); // Resolve even on error with default/last known settings
+            resolve(currentSettings); 
         });
     });
 }
@@ -66,7 +65,6 @@ export async function loadSettings() {
 function updateDynamicContent() {
     const logoElement = document.getElementById('storeLogo');
     if (logoElement && currentSettings.storeName) {
-        // Splitting logic for logo with span
         const parts = currentSettings.storeName.split(' ');
         if (parts.length > 1) {
             logoElement.innerHTML = `${parts[0]} <span>${parts.slice(1).join(' ')}</span>`;
@@ -76,15 +74,12 @@ function updateDynamicContent() {
     }
 }
 
-// Initial load of settings
 loadSettings();
 
-// Helper to get current settings
 export function getSettings() {
     return currentSettings;
 }
 
-// Permission checks
 export function canAddProducts() { return currentSettings.features?.canAddProducts ?? true; }
 export function canEditProducts() { return currentSettings.features?.canEditProducts ?? true; }
 export function canDeleteProducts() { return currentSettings.features?.canDeleteProducts ?? true; }
@@ -95,7 +90,6 @@ export function canAccessSettings() { return currentSettings.features?.canAccess
 
 // --- AUTHENTICATION ---
 onAuthStateChanged(auth, async (user) => {
-    // Wait for settings to load before checking protected pages
     await loadSettings(); 
 
     const protectedPages = ['dashboard.html', 'inventory.html', 'add_product.html', 'pos.html', 'sales_history.html', 'settings.html'];
@@ -104,7 +98,6 @@ onAuthStateChanged(auth, async (user) => {
     if (!user && protectedPages.includes(currentPage)) {
         window.location.href = 'index.html';
     } else if (user && currentPage === 'index.html') {
-        // If logged in, redirect away from login page
         window.location.href = 'dashboard.html';
     }
 });
@@ -206,7 +199,6 @@ export function listenToScannerSession(callback) {
                 if (callback) {
                     callback(data.scannedValue, data.purpose);
                 }
-                // Reset the status so the phone knows the desktop received it
                 await updateDoc(scannerSessionDocRef, {
                     status: 'readyForNextScan',
                     scannedValue: null
