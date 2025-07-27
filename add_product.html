@@ -82,7 +82,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, addDoc, doc, updateDoc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, listenToScannerSession, requestScan, canAddProducts, canEditProducts } from './shared.js';
+        import { db, showNotification, listenToScannerSession, requestScan, canAddProducts, canEditProducts, getSettings } from './shared.js'; // تم تصحيح الاستيراد
 
         const pageTitle = document.getElementById('pageTitle');
         const saveBtn = document.getElementById('saveProductBtn');
@@ -98,7 +98,6 @@
             barcode: { input: document.getElementById('productBarcode'), error: document.getElementById('productBarcodeError') }
         };
 
-        // Redirect if not permitted
         document.addEventListener('DOMContentLoaded', () => {
             if (editingProductId && !canEditProducts()) {
                 showNotification("ليس لديك صلاحية لتعديل المنتجات.", "error");
