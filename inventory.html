@@ -78,7 +78,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, canAddProducts, canEditProducts, canDeleteProducts, canAccessSalesHistory, canAccessSettings } from './shared.js';
+        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, canAddProducts, canEditProducts, canDeleteProducts, getSettings, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
 
         const productsTableBody = document.getElementById('productsTableBody');
         const searchInput = document.getElementById('searchProduct');
@@ -151,7 +151,6 @@
                     </td>
                 `;
             });
-            // Disable Add Product button if not permitted
             addProductBtn.style.display = canAddProducts() ? '' : 'none';
         }
         
@@ -196,7 +195,6 @@
             }
         });
 
-        // Permission checks for navigation links
         function updateNavigationPermissions() {
             if (!canAccessSalesHistory()) {
                 salesHistoryLink.style.display = 'none';
@@ -210,7 +208,6 @@
             }
         }
 
-        // Initial load and listen for settings changes
         getSettings().then(() => {
             fetchProducts();
             updateNavigationPermissions();
