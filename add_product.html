@@ -82,7 +82,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, addDoc, doc, updateDoc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, listenToScannerSession, requestScan, canAddProducts, canEditProducts, getSettings } from './shared.js'; // تم تصحيح الاستيراد
+        import { db, showNotification, listenToScannerSession, requestScan, canAddProducts, canEditProducts, getSettings } from './shared.js';
 
         const pageTitle = document.getElementById('pageTitle');
         const saveBtn = document.getElementById('saveProductBtn');
@@ -99,6 +99,9 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
+            // No need for .then here as canAddProducts/canEditProducts get updated via onSnapshot in shared.js
+            // The logic runs, and if settings are not loaded immediately, they will update later.
+            // For initial page load with immediate redirect, this is usually acceptable.
             if (editingProductId && !canEditProducts()) {
                 showNotification("ليس لديك صلاحية لتعديل المنتجات.", "error");
                 setTimeout(() => window.location.href = 'inventory.html', 1500);
@@ -253,6 +256,9 @@
             }
         });
         
+        // هنا لا نحتاج لـ .then على getSettings() لأن canEditProducts/canAddProducts
+        // تعتمد على currentSettings التي يتم تحديثها بواسطة loadSettings في shared.js.
+        // loadProductForEdit() سيتم استدعاؤها بعد تحميل Shared.js
         loadProductForEdit();
     </script>
 </body>
