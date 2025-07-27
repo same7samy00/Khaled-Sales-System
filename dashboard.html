@@ -86,7 +86,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, getSettings, canAccessSalesHistory, canAccessSettings, showNotification } from './shared.js';
+        import { db, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings, showNotification } from './shared.js'; // أضف loadSettings
 
         const totalProductsEl = document.getElementById('totalProducts');
         const lowStockProductsEl = document.getElementById('lowStockProducts');
@@ -135,7 +135,7 @@
                 displayProductsInList(latestProductsList, sortedByDate);
                 displayCategoryStats(categoryStatsList, categoryData, totalInventoryValue);
 
-                const settings = getSettings();
+                const settings = getSettings(); // احصل على الإعدادات بعد تحميلها
                 if (settings.storeName) {
                     welcomeStoreName.textContent = settings.storeName;
                 }
@@ -191,6 +191,7 @@
         }
 
         function updateNavigationPermissions() {
+            // هذه الدوال لن تتسبب في خطأ .then لأنها تُرجع قيمة مباشرة
             if (!canAccessSalesHistory()) {
                 salesHistoryLink.style.display = 'none';
             } else {
@@ -203,7 +204,9 @@
             }
         }
         
-        getSettings().then(() => {
+        // عند تحميل الصفحة، تأكد من تحميل الإعدادات أولاً (وعد)
+        // ثم قم بجلب بيانات لوحة التحكم وتحديث أذونات التنقل
+        loadSettings().then(() => {
             fetchDashboardData();
             updateNavigationPermissions();
         });
