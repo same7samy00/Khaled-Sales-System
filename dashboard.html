@@ -190,7 +190,6 @@
             });
         }
 
-        // Permission checks for navigation links
         function updateNavigationPermissions() {
             if (!canAccessSalesHistory()) {
                 salesHistoryLink.style.display = 'none';
@@ -204,7 +203,6 @@
             }
         }
         
-        // Initial load and listen for settings changes
         getSettings().then(() => {
             fetchDashboardData();
             updateNavigationPermissions();
