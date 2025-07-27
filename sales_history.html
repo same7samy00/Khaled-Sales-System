@@ -99,8 +99,8 @@
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
-        import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, where, writeBatch, getSettings, canDeleteSales, canAccessSalesHistory, canAccessSettings } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation } from './shared.js';
+        import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { db, showNotification, showConfirmation, getSettings, canDeleteSales, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
 
         const salesTableBody = document.getElementById('salesTableBody');
         const salesDetailsModal = document.getElementById('salesDetailsModal');
@@ -120,27 +120,26 @@
 
         let allSales = [];
 
-        // Function to check password before accessing the page
         async function checkPassword() {
-            const settings = getSettings(); // Get settings synchronously if already loaded
+            const settings = getSettings();
             const SALES_ADMIN_PASSWORD = settings.salesHistoryPassword; 
 
-            if (!canAccessSalesHistory()) { // Check permission first
+            if (!canAccessSalesHistory()) {
                 showNotification("ليس لديك صلاحية للدخول إلى سجل المبيعات.", "error");
-                setTimeout(() => window.location.href = 'dashboard.html', 1500); // Redirect if no permission
+                setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 return;
             }
             
-            passwordModal.style.display = 'flex'; // Show modal
-            passwordInput.value = ''; // Clear previous input
-            passwordError.textContent = ''; // Clear previous errors
+            passwordModal.style.display = 'flex';
+            passwordInput.value = '';
+            passwordError.textContent = '';
             passwordInput.focus();
 
             submitPasswordBtn.onclick = () => {
                 if (passwordInput.value === SALES_ADMIN_PASSWORD) {
                     passwordModal.style.display = 'none';
-                    fetchSales(); // Proceed to fetch sales after successful login
-                    if (!canDeleteSales()) { // Disable delete all button if not permitted
+                    fetchSales();
+                    if (!canDeleteSales()) {
                         deleteAllSalesBtn.disabled = true;
                         deleteAllSalesBtn.textContent = 'ليس لديك صلاحية الحذف';
                     }
@@ -149,7 +148,6 @@
                 }
             };
 
-            // Allow pressing Enter to submit password
             passwordInput.addEventListener('keypress', function(event) {
                 if (event.key === 'Enter') {
                     submitPasswordBtn.click();
@@ -157,23 +155,21 @@
             });
         }
 
-        // Fetch sales data from Firestore
         async function fetchSales() {
             salesTableBody.innerHTML = '<tr><td colspan="8" class="table-placeholder">جاري تحميل سجل المبيعات...</td></tr>';
             try {
                 const salesCollectionRef = collection(db, "sales");
                 let q = query(salesCollectionRef, orderBy("saleDate", "desc"));
 
-                // Apply date filters if available
                 const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
                 const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
                 
                 if (startDate) {
-                    startDate.setHours(0, 0, 0, 0); // Start of the day
+                    startDate.setHours(0, 0, 0, 0);
                     q = query(q, where("saleDate", ">=", startDate));
                 }
                 if (endDate) {
-                    endDate.setHours(23, 59, 59, 999); // End of the day
+                    endDate.setHours(23, 59, 59, 999);
                     q = query(q, where("saleDate", "<=", endDate));
                 }
 
@@ -187,7 +183,6 @@
             }
         }
 
-        // Render sales data into the table
         function renderSales(salesToRender) {
             salesTableBody.innerHTML = '';
             if (salesToRender.length === 0) {
@@ -220,7 +215,6 @@
             });
         }
 
-        // Display sale details in modal
         function showSaleDetails(saleId) {
             const sale = allSales.find(s => s.id === saleId);
             if (!sale) {
@@ -257,19 +251,16 @@
             salesDetailsModal.style.display = 'flex';
         }
 
-        // Close sales details modal
         closeModalBtn.addEventListener('click', () => {
             salesDetailsModal.style.display = 'none';
         });
 
-        // Close modal when clicking outside of it
         window.addEventListener('click', (event) => {
             if (event.target === salesDetailsModal) {
                 salesDetailsModal.style.display = 'none';
             }
         });
         
-        // Handle table row clicks (for view and delete buttons)
         salesTableBody.addEventListener('click', async (e) => {
             const viewBtn = e.target.closest('.view-details-btn');
             if (viewBtn) {
@@ -296,12 +287,10 @@
             }
         });
 
-        // Filter sales by date
         filterSalesBtn.addEventListener('click', () => {
             fetchSales();
         });
 
-        // Delete all sales
         deleteAllSalesBtn.addEventListener('click', () => {
             if (!canDeleteSales()) {
                 showNotification("ليس لديك صلاحية لحذف جميع عمليات البيع.", "error");
@@ -332,7 +321,6 @@
             });
         });
 
-        // Permission checks for navigation links
         function updateNavigationPermissions() {
             if (!canAccessSalesHistory()) {
                 salesHistoryLink.style.display = 'none';
@@ -346,10 +334,9 @@
             }
         }
 
-        // Initial check for password when the page loads, then load data
         getSettings().then(() => {
-            updateNavigationPermissions(); // Update nav links based on initial settings
-            checkPassword(); // This will trigger fetchSales after successful auth
+            updateNavigationPermissions();
+            checkPassword();
         });
     </script>
 </body>
