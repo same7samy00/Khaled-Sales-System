@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -34,7 +33,7 @@
     <script type="module">
         import { auth } from "./shared.js";
         import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { showNotification } from './shared.js'; // Import showNotification
+        import { showNotification } from './shared.js'; 
 
         const loginForm = document.getElementById('loginForm');
         const emailInput = document.getElementById('email');
@@ -71,7 +70,6 @@
             try {
                 await setPersistence(auth, browserLocalPersistence);
                 await signInWithEmailAndPassword(auth, email, password);
-                // Redirect is handled by onAuthStateChanged in shared.js
             } catch (error) {
                 console.error("Login Error:", error.code);
                 switch (error.code) {
