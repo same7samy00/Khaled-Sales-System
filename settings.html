@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإعدادات - شيخ العرب</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo" id="storeLogo">شيخ <span>العرب</span></div>
+        <ul class="nav-list">
+            <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="ri-dashboard-line"></i><span>الصفحة الرئيسية</span></a></li>
+            <li class="nav-item"><a href="inventory.html" class="nav-link"><i class="ri-box-3-line"></i><span>إدارة المخزون</span></a></li>
+            <li class="nav-item"><a href="pos.html" class="nav-link"><i class="ri-shopping-cart-line"></i><span>نقطة البيع</span></a></li>
+            <li class="nav-item"><a href="sales_history.html" class="nav-link" id="salesHistoryLink"><i class="ri-history-line"></i><span>سجل المبيعات</span></a></li>
+            <li class="nav-item"><a href="settings.html" class="nav-link active" id="settingsLink"><i class="ri-settings-3-line"></i><span>الإعدادات</span></a></li>
+            <li class="nav-item logout"><a href="#" id="logoutButton" class="nav-link logout-btn"><i class="ri-logout-box-line"></i><span>تسجيل الخروج</span></a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1>الإعدادات</h1>
+            </div>
+
+            <div class="settings-section">
+                <h2>إعدادات المتجر العامة</h2>
+                <div class="input-group">
+                    <label for="storeName">اسم الشعار / المتجر</label>
+                    <input type="text" id="storeName">
+                </div>
+                <div class="input-group">
+                    <label for="invoiceAddress">عنوان المتجر (للفاتورة)</label>
+                    <input type="text" id="invoiceAddress">
+                </div>
+                <div class="input-group">
+                    <label for="invoicePhone">رقم الهاتف (للفاتورة)</label>
+                    <input type="text" id="invoicePhone">
+                </div>
+                <div class="input-group">
+                    <label for="invoiceThankYou">رسالة الشكر في الفاتورة</label>
+                    <textarea id="invoiceThankYou" rows="3"></textarea>
+                </div>
+                <button class="btn btn-primary btn-save" id="saveGeneralSettings">حفظ الإعدادات العامة</button>
+            </div>
+
+            <div class="settings-section">
+                <h2>تغيير كلمات المرور</h2>
+                <div class="input-group">
+                    <label for="currentAuthPassword">كلمة المرور الحالية (لتغيير كلمة سر تسجيل الدخول)</label>
+                    <input type="password" id="currentAuthPassword">
+                    <span class="error-message" id="currentAuthPasswordError"></span>
+                </div>
+                <div class="input-group">
+                    <label for="newAuthPassword">كلمة سر تسجيل الدخول الجديدة</label>
+                    <input type="password" id="newAuthPassword">
+                    <span class="error-message" id="newAuthPasswordError"></span>
+                </div>
+                <button class="btn btn-primary btn-save" id="changeAuthPassword">تغيير كلمة سر تسجيل الدخول</button>
+                <hr style="margin: 20px 0; border-top: 1px dashed #eee;">
+                <div class="input-group">
+                    <label for="newSalesPassword">كلمة سر سجل المبيعات الجديدة</label>
+                    <input type="password" id="newSalesPassword" placeholder="كلمة السر الجديدة لسجل المبيعات">
+                    <span class="error-message" id="newSalesPasswordError"></span>
+                </div>
+                <button class="btn btn-primary btn-save" id="changeSalesPassword">تغيير كلمة سر سجل المبيعات</button>
+                <hr style="margin: 20px 0; border-top: 1px dashed #eee;">
+                 <div class="input-group">
+                    <label for="newSettingsPassword">كلمة سر الإعدادات الجديدة</label>
+                    <input type="password" id="newSettingsPassword" placeholder="كلمة السر الجديدة للإعدادات">
+                    <span class="error-message" id="newSettingsPasswordError"></span>
+                </div>
+                <button class="btn btn-primary btn-save" id="changeSettingsPassword">تغيير كلمة سر الإعدادات</button>
+            </div>
+
+            <div class="settings-section">
+                <h2>إدارة ميزات النظام</h2>
+                <div class="feature-toggle-group">
+                    <label for="toggleAddProducts">السماح بإضافة منتجات</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleAddProducts">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="feature-toggle-group">
+                    <label for="toggleEditProducts">السماح بتعديل المنتجات</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleEditProducts">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="feature-toggle-group">
+                    <label for="toggleDeleteProducts">السماح بحذف المنتجات</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleDeleteProducts">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                 <div class="feature-toggle-group">
+                    <label for="toggleAccessSalesHistory">السماح بالدخول إلى سجل المبيعات</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleAccessSalesHistory">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="feature-toggle-group">
+                    <label for="toggleDeleteSales">السماح بحذف سجلات المبيعات</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleDeleteSales">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                 <div class="feature-toggle-group">
+                    <label for="toggleAccessSettings">السماح بالدخول إلى الإعدادات</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleAccessSettings">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="btn btn-primary btn-save" id="saveFeatureSettings">حفظ صلاحيات الميزات</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="passwordModal" class="password-modal">
+        <div class="password-modal-content">
+            <h2>الرجاء إدخال كلمة المرور</h2>
+            <input type="password" id="passwordInput" placeholder="كلمة المرور">
+            <div class="error-message" id="passwordError"></div>
+            <button class="btn btn-primary" id="submitPasswordBtn">دخول</button>
+        </div>
+    </div>
+
+    <div id="notification-container"></div>
+    <script src="shared.js" type="module"></script>
+    <script type="module">
+        import { auth, db, showNotification, showConfirmation, settingsDocRef, getSettings, canAccessSettings } from './shared.js';
+        import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+        // DOM elements for General Settings
+        const storeNameInput = document.getElementById('storeName');
+        const invoiceAddressInput = document.getElementById('invoiceAddress');
+        const invoicePhoneInput = document.getElementById('invoicePhone');
+        const invoiceThankYouInput = document.getElementById('invoiceThankYou');
+        const saveGeneralSettingsBtn = document.getElementById('saveGeneralSettings');
+
+        // DOM elements for Password Changes
+        const currentAuthPasswordInput = document.getElementById('currentAuthPassword');
+        const newAuthPasswordInput = document.getElementById('newAuthPassword');
+        const changeAuthPasswordBtn = document.getElementById('changeAuthPassword');
+        const currentAuthPasswordError = document.getElementById('currentAuthPasswordError');
+        const newAuthPasswordError = document.getElementById('newAuthPasswordError');
+
+        const newSalesPasswordInput = document.getElementById('newSalesPassword');
+        const changeSalesPasswordBtn = document.getElementById('changeSalesPassword');
+        const newSalesPasswordError = document.getElementById('newSalesPasswordError');
+
+        const newSettingsPasswordInput = document.getElementById('newSettingsPassword');
+        const changeSettingsPasswordBtn = document.getElementById('changeSettingsPassword');
+        const newSettingsPasswordError = document.getElementById('newSettingsPasswordError');
+
+        // DOM elements for Feature Toggles
+        const toggleAddProducts = document.getElementById('toggleAddProducts');
+        const toggleEditProducts = document.getElementById('toggleEditProducts');
+        const toggleDeleteProducts = document.getElementById('toggleDeleteProducts');
+        const toggleAccessSalesHistory = document.getElementById('toggleAccessSalesHistory');
+        const toggleDeleteSales = document.getElementById('toggleDeleteSales');
+        const toggleAccessSettings = document.getElementById('toggleAccessSettings');
+        const saveFeatureSettingsBtn = document.getElementById('saveFeatureSettings');
+
+        // Password Modal elements
+        const passwordModal = document.getElementById('passwordModal');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordError = document.getElementById('passwordError');
+        const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+
+        let currentStoreSettings = {}; // Holds the current settings from Firebase
+
+        // Function to check password before accessing the page
+        async function checkPassword() {
+            const settings = getSettings(); // Get settings synchronously
+            const SETTINGS_ADMIN_PASSWORD = settings.settingsPassword; // Get password from settings
+
+            if (!canAccessSettings()) { // Check permission first
+                showNotification("ليس لديك صلاحية للدخول إلى الإعدادات.", "error");
+                setTimeout(() => window.location.href = 'dashboard.html', 1500); // Redirect if no permission
+                return;
+            }
+            
+            passwordModal.style.display = 'flex'; // Show modal
+            passwordInput.value = ''; // Clear previous input
+            passwordError.textContent = ''; // Clear previous errors
+            passwordInput.focus();
+
+            submitPasswordBtn.onclick = () => {
+                if (passwordInput.value === SETTINGS_ADMIN_PASSWORD) {
+                    passwordModal.style.display = 'none';
+                    loadSettingsToForm(); // Load settings data into the form fields
+                } else {
+                    passwordError.textContent = "كلمة المرور غير صحيحة.";
+                }
+            };
+
+            passwordInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    submitPasswordBtn.click();
+                }
+            });
+        }
+
+        // Load settings data into form fields
+        async function loadSettingsToForm() {
+            currentStoreSettings = getSettings(); // Get the latest settings
+
+            storeNameInput.value = currentStoreSettings.storeName || '';
+            invoiceAddressInput.value = currentStoreSettings.invoiceAddress || '';
+            invoicePhoneInput.value = currentStoreSettings.invoicePhone || '';
+            invoiceThankYouInput.value = currentStoreSettings.invoiceThankYou || '';
+
+            newSalesPasswordInput.value = currentStoreSettings.salesHistoryPassword || '';
+            newSettingsPasswordInput.value = currentStoreSettings.settingsPassword || '';
+
+            toggleAddProducts.checked = currentStoreSettings.features?.canAddProducts ?? true;
+            toggleEditProducts.checked = currentStoreSettings.features?.canEditProducts ?? true;
+            toggleDeleteProducts.checked = currentStoreSettings.features?.canDeleteProducts ?? true;
+            toggleAccessSalesHistory.checked = currentStoreSettings.features?.canAccessSalesHistory ?? true;
+            toggleDeleteSales.checked = currentStoreSettings.features?.canDeleteSales ?? true;
+            toggleAccessSettings.checked = currentStoreSettings.features?.canAccessSettings ?? true;
+        }
+
+        // --- Event Listeners for Saving Settings ---
+
+        // Save General Settings
+        saveGeneralSettingsBtn.addEventListener('click', async () => {
+            showConfirmation("هل أنت متأكد من حفظ إعدادات المتجر العامة؟", async () => {
+                saveGeneralSettingsBtn.disabled = true;
+                saveGeneralSettingsBtn.textContent = 'جاري الحفظ...';
+                try {
+                    await updateDoc(settingsDocRef, {
+                        storeName: storeNameInput.value.trim(),
+                        invoiceAddress: invoiceAddressInput.value.trim(),
+                        invoicePhone: invoicePhoneInput.value.trim(),
+                        invoiceThankYou: invoiceThankYouInput.value.trim(),
+                    });
+                    showNotification("تم حفظ إعدادات المتجر بنجاح!", "success");
+                } catch (e) {
+                    console.error("Error saving general settings:", e);
+                    showNotification("فشل حفظ إعدادات المتجر.", "error");
+                } finally {
+                    saveGeneralSettingsBtn.disabled = false;
+                    saveGeneralSettingsBtn.textContent = 'حفظ الإعدادات العامة';
+                }
+            });
+        });
+
+        // Change Authentication Password
+        changeAuthPasswordBtn.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            if (!user) {
+                showNotification("لا يوجد مستخدم مسجل الدخول.", "error");
+                return;
+            }
+
+            const currentPassword = currentAuthPasswordInput.value.trim();
+            const newPassword = newAuthPasswordInput.value.trim();
+
+            currentAuthPasswordError.textContent = '';
+            newAuthPasswordError.textContent = '';
+
+            if (!currentPassword) {
+                currentAuthPasswordError.textContent = "الرجاء إدخال كلمة المرور الحالية.";
+                return;
+            }
+            if (!newPassword || newPassword.length < 6) {
+                newAuthPasswordError.textContent = "كلمة المرور الجديدة يجب أن تتكون من 6 أحرف على الأقل.";
+                return;
+            }
+
+            showConfirmation("هل أنت متأكد من تغيير كلمة سر تسجيل الدخول؟", async () => {
+                changeAuthPasswordBtn.disabled = true;
+                changeAuthPasswordBtn.textContent = 'جاري التغيير...';
+                try {
+                    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                    await reauthenticateWithCredential(user, credential);
+                    await updatePassword(user, newPassword);
+                    showNotification("تم تغيير كلمة سر تسجيل الدخول بنجاح!", "success");
+                    currentAuthPasswordInput.value = '';
+                    newAuthPasswordInput.value = '';
+                } catch (e) {
+                    console.error("Error changing auth password:", e);
+                    if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+                        currentAuthPasswordError.textContent = "كلمة المرور الحالية غير صحيحة.";
+                    } else if (e.code === 'auth/requires-recent-login') {
+                         showNotification("الرجاء تسجيل الخروج وإعادة الدخول لتغيير كلمة المرور.", "error", 5000);
+                    } else {
+                        showNotification("فشل تغيير كلمة سر تسجيل الدخول.", "error");
+                    }
+                } finally {
+                    changeAuthPasswordBtn.disabled = false;
+                    changeAuthPasswordBtn.textContent = 'تغيير كلمة سر تسجيل الدخول';
+                }
+            });
+        });
+
+        // Change Sales History Password
+        changeSalesPasswordBtn.addEventListener('click', async () => {
+            const newSalesPassword = newSalesPasswordInput.value.trim();
+            newSalesPasswordError.textContent = '';
+
+            if (!newSalesPassword || newSalesPassword.length < 6) {
+                newSalesPasswordError.textContent = "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل.";
+                return;
+            }
+            showConfirmation("هل أنت متأكد من تغيير كلمة سر سجل المبيعات؟", async () => {
+                changeSalesPasswordBtn.disabled = true;
+                changeSalesPasswordBtn.textContent = 'جاري التغيير...';
+                try {
+                    await updateDoc(settingsDocRef, {
+                        salesHistoryPassword: newSalesPassword
+                    });
+                    showNotification("تم تغيير كلمة سر سجل المبيعات بنجاح!", "success");
+                    newSalesPasswordInput.value = newSalesPassword; // Update field
+                } catch (e) {
+                    console.error("Error changing sales password:", e);
+                    showNotification("فشل تغيير كلمة سر سجل المبيعات.", "error");
+                } finally {
+                    changeSalesPasswordBtn.disabled = false;
+                    changeSalesPasswordBtn.textContent = 'تغيير كلمة سر سجل المبيعات';
+                }
+            });
+        });
+
+        // Change Settings Password
+        changeSettingsPasswordBtn.addEventListener('click', async () => {
+            const newSettingsPassword = newSettingsPasswordInput.value.trim();
+            newSettingsPasswordError.textContent = '';
+
+            if (!newSettingsPassword || newSettingsPassword.length < 6) {
+                newSettingsPasswordError.textContent = "كلمة المرور يجب أن تتكون من 6 أحرف على الأقل.";
+                return;
+            }
+            showConfirmation("هل أنت متأكد من تغيير كلمة سر الإعدادات؟", async () => {
+                changeSettingsPasswordBtn.disabled = true;
+                changeSettingsPasswordBtn.textContent = 'جاري التغيير...';
+                try {
+                    await updateDoc(settingsDocRef, {
+                        settingsPassword: newSettingsPassword
+                    });
+                    showNotification("تم تغيير كلمة سر الإعدادات بنجاح!", "success");
+                    newSettingsPasswordInput.value = newSettingsPassword; // Update field
+                } catch (e) {
+                    console.error("Error changing settings password:", e);
+                    showNotification("فشل تغيير كلمة سر الإعدادات.", "error");
+                } finally {
+                    changeSettingsPasswordBtn.disabled = false;
+                    changeSettingsPasswordBtn.textContent = 'تغيير كلمة سر الإعدادات';
+                }
+            });
+        });
+
+        // Save Feature Settings
+        saveFeatureSettingsBtn.addEventListener('click', async () => {
+            showConfirmation("هل أنت متأكد من حفظ صلاحيات الميزات؟", async () => {
+                saveFeatureSettingsBtn.disabled = true;
+                saveFeatureSettingsBtn.textContent = 'جاري الحفظ...';
+                try {
+                    await updateDoc(settingsDocRef, {
+                        features: {
+                            canAddProducts: toggleAddProducts.checked,
+                            canEditProducts: toggleEditProducts.checked,
+                            canDeleteProducts: toggleDeleteProducts.checked,
+                            canAccessSalesHistory: toggleAccessSalesHistory.checked,
+                            canDeleteSales: toggleDeleteSales.checked,
+                            canAccessSettings: toggleAccessSettings.checked
+                        }
+                    });
+                    showNotification("تم حفظ صلاحيات الميزات بنجاح!", "success");
+                } catch (e) {
+                    console.error("Error saving feature settings:", e);
+                    showNotification("فشل حفظ صلاحيات الميزات.", "error");
+                } finally {
+                    saveFeatureSettingsBtn.disabled = false;
+                    saveFeatureSettingsBtn.textContent = 'حفظ صلاحيات الميزات';
+                }
+            });
+        });
+
+        // Permission checks for navigation links
+        function updateNavigationPermissions() {
+            const salesHistoryLink = document.getElementById('salesHistoryLink');
+            const settingsLink = document.getElementById('settingsLink');
+            if (salesHistoryLink) salesHistoryLink.style.display = canAccessSalesHistory() ? '' : 'none';
+            if (settingsLink) settingsLink.style.display = canAccessSettings() ? '' : 'none';
+        }
+
+        // Initial check for password when page loads, then load settings
+        getSettings().then(() => {
+            updateNavigationPermissions(); // Update nav links based on initial settings
+            checkPassword(); // This will trigger loadSettingsToForm after successful auth
+        });
+    </script>
+</body>
+</html>
