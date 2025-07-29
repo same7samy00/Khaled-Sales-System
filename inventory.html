@@ -92,9 +92,9 @@
 
         // دالة تهيئة الصفحة
         async function initializeInventoryPage() {
-            console.log("inventory.html: Initializing Inventory Page. Calling loadSettings..."); // Updated log
+            console.log("inventory.html: Initializing Inventory Page. Calling loadSettings...");
             await loadSettings(); 
-            console.log("inventory.html: loadSettings completed. Calling updateNavigationPermissions and fetchProducts."); // New log
+            console.log("inventory.html: loadSettings completed. Calling updateNavigationPermissions and fetchProducts.");
             updateNavigationPermissions();
             fetchProducts(); 
         }
@@ -188,24 +188,19 @@
         
         productsTableBody.addEventListener('click', (e) => {
             const editBtn = e.target.closest('.edit-btn');
-            if (editBtn) { 
+            if (editBtn && !editBtn.disabled) { // Added back the disabled check
                 window.location.href = `add_product.html?id=${editBtn.dataset.id}`;
                 return;
             }
             
             const deleteBtn = e.target.closest('.delete-btn');
-            if (deleteBtn) { 
+            if (deleteBtn && !deleteBtn.disabled && canDeleteProducts()) { // Added back the full check
                 const productId = deleteBtn.dataset.id;
                 showConfirmation('هل أنت متأكد أنك تريد حذف هذا المنتج؟', async () => {
                     try {
                         await deleteDoc(doc(db, "products", productId));
                         showNotification('تم حذف المنتج بنجاح!', 'success');
-                    }
-                    // إضافة هذا الجزء هنا للتحقق من الصلاحيات بعد النجاح
-                    if (deleteBtn.disabled) { 
-                        showNotification("ليس لديك صلاحية لحذف المنتجات.", "error");
-                    }
-                    catch (err) {
+                    } catch (err) {
                         console.error("Error deleting document: ", err);
                         showNotification('فشل حذف المنتج.', 'error');
                     }
