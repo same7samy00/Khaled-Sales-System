@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -77,8 +79,8 @@
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
-        import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, canAddProducts, canEditProducts, canDeleteProducts, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js';
+        import { collection, doc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, canAddProducts, canEditProducts, canDeleteProducts, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js';
 
         const productsTableBody = document.getElementById('productsTableBody');
         const searchInput = document.getElementById('searchProduct');
@@ -90,88 +92,42 @@
         let allProducts = [];
         let unsubscribeProducts = null;
 
-        // دالة تهيئة الصفحة
         async function initializeInventoryPage() {
-            console.log("inventory.html: Initializing Inventory Page. Calling loadSettings...");
-            await loadSettings(); 
-            console.log("inventory.html: loadSettings completed. Calling updateNavigationPermissions and fetchProducts.");
+            await loadSettings();
             updateNavigationPermissions();
-            fetchProducts(); 
+            fetchProducts();
         }
 
         async function fetchProducts() {
-            console.log("fetchProducts: Attempting to fetch products...");
-            console.log("fetchProducts: Current db object:", db);
             productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder">جاري تحميل المنتجات...</td></tr>';
-            
-            if (unsubscribeProducts) {
-                unsubscribeProducts();
-                console.log("fetchProducts: Unsubscribed from previous listener.");
-            }
+            if (unsubscribeProducts) unsubscribeProducts();
 
             try {
-                if (!db) {
-                    console.error("fetchProducts: Firestore 'db' object is not initialized. Cannot fetch products.");
-                    showNotification("خطأ: لم يتم تهيئة قاعدة البيانات. يرجى إعادة تحميل الصفحة.", "error");
-                    productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">خطأ في تهيئة قاعدة البيانات.</td></tr>';
-                    return;
-                }
-
-                const productsCollectionRef = collection(db, "products");
-                console.log("fetchProducts: productsCollectionRef created.");
-                const q = query(productsCollectionRef, orderBy("createdAt", "desc"));
-                console.log("fetchProducts: Query created for products.");
-
-                unsubscribeProducts = onSnapshot(q, (querySnapshot) => {
-                    console.log("Firestore Snapshot received for products.");
-                    allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    console.log("Fetched products data:", allProducts);
-                    if (allProducts.length === 0) {
-                        console.log("No products found in Firestore.");
-                    }
+                const productsRef = collection(db, "products");
+                const q = query(productsRef, orderBy("createdAt", "desc"));
+                unsubscribeProducts = onSnapshot(q, (snapshot) => {
+                    allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderProducts();
-                }, (error) => {
-                    console.error("Error listening to products collection: ", error);
-                    if (error.code === 'permission-denied') {
-                        showNotification("خطأ: رفض الوصول لقاعدة البيانات. يرجى التحقق من قواعد أمان Firebase.", "error", 7000);
-                    } else if (error.code === 'failed-precondition' && error.message.includes("The query requires an index")) {
-                        showNotification("خطأ: يتطلب الاستعلام فهرسًا. يرجى إنشاء الفهرس المطلوب في Firebase Console.", "error", 10000);
-                        console.error("Firebase Indexing Error Details:", error.message);
-                    } else {
-                        showNotification("خطأ في تحميل المنتجات.", "error");
-                    }
-                    productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تحميل المنتجات.</td></tr>';
                 });
-
-            } catch (e) {
-                console.error("Error setting up product listener: ", e);
-                showNotification("خطأ في تهيئة جلب المنتجات.", "error");
-                productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تهيئة جلب المنتجات.</td></tr>';
+            } catch (err) {
+                console.error("Error fetching products:", err);
+                showNotification("حدث خطأ أثناء تحميل المنتجات.", "error");
             }
         }
 
         function renderProducts(productsToRender = null) {
-            console.log("renderProducts: Rendering products to table...");
-            let filteredProducts = productsToRender;
+            let filteredProducts = productsToRender ?? allProducts;
+            const searchQuery = searchInput.value.toLowerCase().trim();
+            const categoryFilter = categorySelect.value;
 
-            if (filteredProducts === null) {
-                const searchQuery = searchInput.value.toLowerCase().trim();
-                const categoryFilter = categorySelect.value;
-                
-                filteredProducts = allProducts;
+            if (categoryFilter)
+                filteredProducts = filteredProducts.filter(p => p.category === categoryFilter);
 
-                if (categoryFilter) {
-                    filteredProducts = filteredProducts.filter(p => p.category === categoryFilter);
-                }
-
-                if (searchQuery) {
-                    filteredProducts = filteredProducts.filter(p =>
-                        (p.name && p.name.toLowerCase().includes(searchQuery)) ||
-                        (p.barcode && p.barcode.toLowerCase().includes(searchQuery))
-                    );
-                }
-            }
-            console.log("renderProducts: Filtered products to display:", filteredProducts);
+            if (searchQuery)
+                filteredProducts = filteredProducts.filter(p =>
+                    (p.name && p.name.toLowerCase().includes(searchQuery)) ||
+                    (p.barcode && p.barcode.toLowerCase().includes(searchQuery))
+                );
 
             productsTableBody.innerHTML = '';
             if (filteredProducts.length === 0) {
@@ -182,10 +138,8 @@
             filteredProducts.forEach(product => {
                 const row = productsTableBody.insertRow();
                 const status = product.status || 'متوفر';
-                let statusClass = '';
-                if (status === 'قليل المخزون') statusClass = 'status-warning';
-                else if (status === 'نفد المخزون') statusClass = 'status-danger';
-                else statusClass = 'status-success';
+                let statusClass = status === 'قليل المخزون' ? 'status-warning' :
+                                  status === 'نفد المخزون' ? 'status-danger' : 'status-success';
 
                 row.innerHTML = `
                     <td>${product.barcode || 'N/A'}</td>
@@ -200,18 +154,18 @@
                     </td>
                 `;
             });
+
             addProductBtn.style.display = canAddProducts() ? '' : 'none';
         }
-        
-        productsTableBody.addEventListener('click', (e) => {
+
+        productsTableBody.addEventListener('click', async (e) => {
             const editBtn = e.target.closest('.edit-btn');
             if (editBtn && !editBtn.disabled) {
                 window.location.href = `add_product.html?id=${editBtn.dataset.id}`;
                 return;
             }
-            
+
             const deleteBtn = e.target.closest('.delete-btn');
-            // تأكد من أن هذا الشرط يتحقق وأن الصلاحيات تسمح بالحذف
             if (deleteBtn && !deleteBtn.disabled && canDeleteProducts()) {
                 const productId = deleteBtn.dataset.id;
                 showConfirmation('هل أنت متأكد أنك تريد حذف هذا المنتج؟', async () => {
@@ -219,22 +173,21 @@
                         await deleteDoc(doc(db, "products", productId));
                         showNotification('تم حذف المنتج بنجاح!', 'success');
                     } catch (err) {
-                        console.error("Error deleting document: ", err);
                         showNotification('فشل حذف المنتج.', 'error');
                     }
                 });
-            } else if (deleteBtn && deleteBtn.disabled) { // هذا الشرط يجب أن يكون للتحقق فقط، وليس داخل try/catch
-                 showNotification("ليس لديك صلاحية لحذف المنتجات.", "error");
+            } else if (deleteBtn && deleteBtn.disabled) {
+                showNotification("ليس لديك صلاحية لحذف المنتجات.", "error");
             }
         });
 
         searchInput.addEventListener('input', () => renderProducts());
         categorySelect.addEventListener('change', () => renderProducts());
-        
+
         document.getElementById('requestScanForSearchBtn').addEventListener('click', () => {
             requestScan('search');
         });
-        
+
         listenToScannerSession((scannedValue, purpose) => {
             if (purpose === 'search' && scannedValue) {
                 searchInput.value = scannedValue;
@@ -244,16 +197,8 @@
         });
 
         function updateNavigationPermissions() {
-            if (!canAccessSalesHistory()) {
-                salesHistoryLink.style.display = 'none';
-            } else {
-                salesHistoryLink.style.display = '';
-            }
-            if (!canAccessSettings()) {
-                settingsLink.style.display = 'none';
-            } else {
-                settingsLink.style.display = '';
-            }
+            salesHistoryLink.style.display = canAccessSalesHistory() ? '' : 'none';
+            settingsLink.style.display = canAccessSettings() ? '' : 'none';
         }
 
         document.addEventListener('DOMContentLoaded', initializeInventoryPage);
