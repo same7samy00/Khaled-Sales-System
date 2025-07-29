@@ -6,13 +6,13 @@ import { getFirestore, doc, onSnapshot, setDoc, updateDoc, getDoc } from "https:
 
 // --- NEW CONFIG ---
 const firebaseConfig = {
-  apiKey: "AIzaSyBtJaifspNzKeht9mOmZGvVU1IOvmnyrwQ",
-  authDomain: "sheikh-of-the-arabs.firebaseapp.com",
-  projectId: "sheikh-of-the-arabs",
-  storageBucket: "sheikh-of-the-arabs.firebasestorage.app",
-  messagingSenderId: "64212176848",
-  appId: "1:64212176848:web:8a02363e1be4e706fdb3d5",
-  measurementId: "G-HV2WKFZ32B"
+  apiKey: "AIzaSyBfgOusQjs1qj6G_92_Ecu2wjxASeO2Tko",
+  authDomain: "project-2965375871585611133.firebaseapp.com",
+  projectId: "project-2965375871585611133",
+  storageBucket: "project-2965375871585611133.firebasestorage.app",
+  messagingSenderId: "195369497927",
+  appId: "1:195369497927:web:451c349c098f2a59c18862",
+  measurementId: "G-YN2HRECRL0"
 };
 
 const SHARED_SCANNER_SESSION_ID = "YOUR_STORE_UNIQUE_SCANNER_ID_12345"; 
@@ -24,7 +24,7 @@ const app = initializeApp(firebaseConfig);
 console.log("shared.js: Firebase app initialized.");
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-console.log("shared.js: Firestore and Auth services initialized. DB object:", db); // Added db object log
+console.log("shared.js: Firestore and Auth services initialized. DB object:", db);
 
 // --- GLOBAL SETTINGS & PERMISSIONS ---
 export const settingsDocRef = doc(db, 'settings', 'store_config');
