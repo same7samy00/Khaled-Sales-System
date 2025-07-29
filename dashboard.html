@@ -85,8 +85,8 @@
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings, showNotification } from './shared.js'; // أضف loadSettings
+        import { getFirestore, collection, getDocs, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { db, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings, showNotification } from './shared.js';
 
         const totalProductsEl = document.getElementById('totalProducts');
         const lowStockProductsEl = document.getElementById('lowStockProducts');
@@ -99,54 +99,70 @@
         const salesHistoryLink = document.getElementById('salesHistoryLink');
         const settingsLink = document.getElementById('settingsLink');
 
-        async function fetchDashboardData() {
-            try {
-                const productSnapshot = await getDocs(collection(db, "products"));
-                const allProducts = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                let totalInventoryValue = 0;
-                const categoryData = {};
+        let unsubscribeDashboardProducts = null;
 
-                allProducts.forEach(p => {
-                    const value = (parseFloat(p.quantity || 0)) * (parseFloat(p.pricePerUnit || 0));
-                    totalInventoryValue += value;
-                    if (!categoryData[p.category]) {
-                        categoryData[p.category] = { count: 0, value: 0, name: p.category };
+        async function fetchDashboardData() {
+            if (unsubscribeDashboardProducts) {
+                unsubscribeDashboardProducts();
+            }
+
+            try {
+                const productsCollectionRef = collection(db, "products");
+                const q = query(productsCollectionRef); // لا ترتيب معين لكل المنتجات للداشبورد
+
+                unsubscribeDashboardProducts = onSnapshot(q, (productSnapshot) => {
+                    console.log("Firestore Snapshot received for dashboard products."); //
+                    const allProducts = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log("Fetched products for dashboard:", allProducts); //
+
+                    let totalInventoryValue = 0;
+                    const categoryData = {};
+
+                    allProducts.forEach(p => {
+                        const value = (parseFloat(p.quantity || 0)) * (parseFloat(p.pricePerUnit || 0));
+                        totalInventoryValue += value;
+                        if (!categoryData[p.category]) {
+                            categoryData[p.category] = { count: 0, value: 0, name: p.category };
+                        }
+                        categoryData[p.category].count++;
+                        categoryData[p.category].value += value;
+                    });
+
+                    const lowStockProducts = allProducts.filter(p => p.status === 'قليل المخزون');
+                    const outOfStockProducts = allProducts.filter(p => p.status === 'نفد المخزون');
+                    const uniqueCategories = Object.keys(categoryData);
+
+                    totalProductsEl.textContent = allProducts.length;
+                    lowStockProductsEl.textContent = lowStockProducts.length;
+                    outOfStockProductsEl.textContent = outOfStockProducts.length;
+                    totalCategoriesEl.textContent = uniqueCategories.length;
+                    totalInventoryValueEl.textContent = `${totalInventoryValue.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })}`;
+
+                    const sortedByDate = allProducts
+                        .filter(p => p.createdAt && p.createdAt.toDate)
+                        .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate())
+                        .slice(0, 5);
+
+                    displayProductsInList(latestProductsList, sortedByDate);
+                    displayCategoryStats(categoryStatsList, categoryData, totalInventoryValue);
+
+                    const settings = getSettings(); 
+                    if (settings.storeName) {
+                        welcomeStoreName.textContent = settings.storeName;
                     }
-                    categoryData[p.category].count++;
-                    categoryData[p.category].value += value;
+                }, (error) => {
+                    console.error("Error listening to products collection for dashboard: ", error); //
+                    showNotification("خطأ في تحميل بيانات لوحة التحكم.", "error");
                 });
 
-                const lowStockProducts = allProducts.filter(p => p.status === 'قليل المخزون');
-                const outOfStockProducts = allProducts.filter(p => p.status === 'نفد المخزون');
-                const uniqueCategories = Object.keys(categoryData);
-
-                totalProductsEl.textContent = allProducts.length;
-                lowStockProductsEl.textContent = lowStockProducts.length;
-                outOfStockProductsEl.textContent = outOfStockProducts.length;
-                totalCategoriesEl.textContent = uniqueCategories.length;
-                totalInventoryValueEl.textContent = `${totalInventoryValue.toLocaleString('ar-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 2 })}`;
-
-                const sortedByDate = allProducts
-                    .filter(p => p.createdAt && p.createdAt.toDate)
-                    .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate())
-                    .slice(0, 5);
-
-                displayProductsInList(latestProductsList, sortedByDate);
-                displayCategoryStats(categoryStatsList, categoryData, totalInventoryValue);
-
-                const settings = getSettings(); // احصل على الإعدادات بعد تحميلها
-                if (settings.storeName) {
-                    welcomeStoreName.textContent = settings.storeName;
-                }
-
             } catch (error) {
-                console.error("Error fetching dashboard data:", error);
-                showNotification("خطأ في تحميل بيانات لوحة التحكم.", "error");
+                console.error("Error setting up dashboard listener:", error); //
+                showNotification("خطأ في تهيئة جلب بيانات لوحة التحكم.", "error");
             }
         }
 
         function displayProductsInList(listElement, products) {
+            console.log("Rendering latest products:", products); //
             listElement.innerHTML = '';
             if (products.length === 0) {
                 listElement.innerHTML = '<div class="list-item-placeholder">لا توجد منتجات لعرضها.</div>';
@@ -165,6 +181,7 @@
         }
 
         function displayCategoryStats(listElement, categoryData, totalValue) {
+            console.log("Rendering category stats:", categoryData); //
             listElement.innerHTML = '';
             if (Object.keys(categoryData).length === 0) {
                 listElement.innerHTML = '<div class="list-item-placeholder">لا توجد فئات لعرضها.</div>';
@@ -191,7 +208,6 @@
         }
 
         function updateNavigationPermissions() {
-            // هذه الدوال لن تتسبب في خطأ .then لأنها تُرجع قيمة مباشرة
             if (!canAccessSalesHistory()) {
                 salesHistoryLink.style.display = 'none';
             } else {
@@ -204,10 +220,8 @@
             }
         }
         
-        // عند تحميل الصفحة، تأكد من تحميل الإعدادات أولاً (وعد)
-        // ثم قم بجلب بيانات لوحة التحكم وتحديث أذونات التنقل
         loadSettings().then(() => {
-            fetchDashboardData();
+            fetchDashboardData(); // بدء جلب البيانات باستخدام onSnapshot
             updateNavigationPermissions();
         });
     </script>
