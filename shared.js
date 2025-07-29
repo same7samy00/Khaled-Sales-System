@@ -1,33 +1,30 @@
 // --- SHARED JAVASCRIPT (shared.js) ---
-console.log("shared.js: Script started."); // New log at the very beginning
+console.log("shared.js: Script started.");
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import { getFirestore, doc, onSnapshot, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-// إذا كنت تستخدم Analytics، قم بإلغاء تعليق السطر التالي:
-// import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
 
-// --- CONFIG (MUST BE IDENTICAL EVERYWHERE) ---
+// --- NEW CONFIG ---
 const firebaseConfig = {
-    apiKey: "AIzaSyC9eufzO00_JtbdVoDrw-bJfF1PY3meYoE",
-    authDomain: "new2025-d2fba.firebaseapp.com",
-    projectId: "new2025-d2fba",
-    storageBucket: "new2025-d2fba.firebasestorage.app",
-    messagingSenderId: "239931222059",
-    appId: "1:239931222059:web:6275e5aa6577fb14f4e26e",
-    measurementId: "G-3F4TJ0K34J"
+  apiKey: "AIzaSyBtJaifspNzKeht9mOmZGvVU1IOvmnyrwQ",
+  authDomain: "sheikh-of-the-arabs.firebaseapp.com",
+  projectId: "sheikh-of-the-arabs",
+  storageBucket: "sheikh-of-the-arabs.firebasestorage.app",
+  messagingSenderId: "64212176848",
+  appId: "1:64212176848:web:8a02363e1be4e706fdb3d5",
+  measurementId: "G-HV2WKFZ32B"
 };
+
 const SHARED_SCANNER_SESSION_ID = "YOUR_STORE_UNIQUE_SCANNER_ID_12345"; 
 const DEFAULT_PASSWORD = "010274"; 
 
 // --- FIREBASE INITIALIZATION ---
-console.log("shared.js: Initializing Firebase app with config:", firebaseConfig); // New log
+console.log("shared.js: Initializing Firebase app with config:", firebaseConfig);
 const app = initializeApp(firebaseConfig);
-console.log("shared.js: Firebase app initialized."); // New log
+console.log("shared.js: Firebase app initialized.");
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-console.log("shared.js: Firestore and Auth services initialized."); // New log
-// إذا كنت تستخدم Analytics، قم بإلغاء تعليق السطر التالي وتهيئته:
-// const analytics = getAnalytics(app); 
+console.log("shared.js: Firestore and Auth services initialized. DB object:", db); // Added db object log
 
 // --- GLOBAL SETTINGS & PERMISSIONS ---
 export const settingsDocRef = doc(db, 'settings', 'store_config');
@@ -35,18 +32,18 @@ let currentSettings = {};
 let settingsUnsubscribe = null;
 
 export async function loadSettings() {
-    console.log("shared.js: loadSettings called."); // New log
+    console.log("shared.js: loadSettings called.");
     return new Promise((resolve) => {
         if (settingsUnsubscribe) {
             settingsUnsubscribe(); 
-            console.log("shared.js: Unsubscribed from previous settings listener."); // New log
+            console.log("shared.js: Unsubscribed from previous settings listener.");
         }
 
         settingsUnsubscribe = onSnapshot(settingsDocRef, (docSnap) => {
-            console.log("shared.js: Settings snapshot received."); // New log
+            console.log("shared.js: Settings snapshot received.");
             if (docSnap.exists()) {
                 currentSettings = docSnap.data();
-                console.log("shared.js: Current settings from Firestore:", currentSettings); // New log
+                console.log("shared.js: Current settings from Firestore:", currentSettings);
             } else {
                 currentSettings = {
                     storeName: "شيخ العرب",
@@ -65,12 +62,12 @@ export async function loadSettings() {
                     }
                 };
                 setDoc(settingsDocRef, currentSettings, { merge: true }).catch(e => console.error("Error setting default settings:", e));
-                console.log("shared.js: Settings document not found, setting defaults:", currentSettings); // New log
+                console.log("shared.js: Settings document not found, setting defaults:", currentSettings);
             }
             updateDynamicContent();
             resolve(currentSettings);
         }, (error) => {
-            console.error("shared.js: Error listening to settings:", error); // Updated log
+            console.error("shared.js: Error listening to settings:", error);
             showNotification("خطأ في تحميل الإعدادات.", "error");
             resolve(currentSettings); 
         });
@@ -78,7 +75,7 @@ export async function loadSettings() {
 }
 
 function updateDynamicContent() {
-    console.log("shared.js: updateDynamicContent called."); // New log
+    console.log("shared.js: updateDynamicContent called.");
     const logoElement = document.getElementById('storeLogo');
     if (logoElement && currentSettings.storeName) {
         const parts = currentSettings.storeName.split(' ');
@@ -106,24 +103,24 @@ export function canAccessSettings() { return currentSettings.features?.canAccess
 
 // --- AUTHENTICATION (المصادقة) ---
 onAuthStateChanged(auth, async (user) => {
-    console.log("shared.js: onAuthStateChanged triggered. User:", user); // New log
+    console.log("shared.js: onAuthStateChanged triggered. User:", user);
     await loadSettings(); 
 
     const protectedPages = ['dashboard.html', 'inventory.html', 'add_product.html', 'pos.html', 'sales_history.html', 'settings.html'];
     const currentPage = window.location.pathname.split('/').pop();
 
     if (!user && protectedPages.includes(currentPage)) {
-        console.log("shared.js: User not logged in on a protected page, redirecting to index.html"); // New log
+        console.log("shared.js: User not logged in on a protected page, redirecting to index.html");
         window.location.href = 'index.html';
     } else if (user && currentPage === 'index.html') {
-        console.log("shared.js: User logged in on index.html, redirecting to dashboard.html"); // New log
+        console.log("shared.js: User logged in on index.html, redirecting to dashboard.html");
         window.location.href = 'dashboard.html';
     }
 });
 
 // --- DYNAMIC ACTIVE TAB & LOGOUT (تنشيط التبويب في القائمة وتسجيل الخروج) ---
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("shared.js: DOMContentLoaded triggered."); // New log
+    console.log("shared.js: DOMContentLoaded triggered.");
     const currentPath = window.location.pathname.split('/').pop();
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
@@ -150,10 +147,10 @@ const notificationContainer = document.getElementById('notification-container');
 
 export function showNotification(message, type = 'info', duration = 4000) {
     if (!notificationContainer) {
-        console.warn("Notification container not found."); // New log
+        console.warn("Notification container not found.");
         return;
     }
-    console.log(`showNotification: Message: "${message}", Type: "${type}"`); // New log
+    console.log(`showNotification: Message: "${message}", Type: "${type}"`);
 
     const notificationDiv = document.createElement('div');
     notificationDiv.className = `notification ${type}`;
@@ -174,10 +171,10 @@ export function showNotification(message, type = 'info', duration = 4000) {
 
 export function showConfirmation(message, onConfirm) {
     if (!notificationContainer) {
-        console.warn("Notification container not found for confirmation."); // New log
+        console.warn("Notification container not found for confirmation.");
         return;
     }
-    console.log(`showConfirmation: Message: "${message}"`); // New log
+    console.log(`showConfirmation: Message: "${message}"`);
 
     const notificationDiv = document.createElement('div');
     notificationDiv.className = 'notification warning confirm';
@@ -207,7 +204,7 @@ const scannerSessionDocRef = doc(db, 'scannerSessions', SHARED_SCANNER_SESSION_I
 let scannerUnsubscribe = null;
 
 export async function requestScan(purpose) {
-    console.log(`requestScan: Purpose: ${purpose}`); // New log
+    console.log(`requestScan: Purpose: ${purpose}`);
     showNotification("جاري إرسال طلب المسح إلى الهاتف...", "info");
     try {
         await setDoc(scannerSessionDocRef, {
@@ -215,25 +212,25 @@ export async function requestScan(purpose) {
             purpose: purpose,
             requestedAt: new Date()
         }, { merge: true });
-        console.log("requestScan: Scan request sent to Firestore."); // New log
+        console.log("requestScan: Scan request sent to Firestore.");
     } catch (error) {
-        console.error("requestScan: Error requesting scan:", error); // Updated log
+        console.error("requestScan: Error requesting scan:", error);
         showNotification("فشل طلب المسح. تحقق من الاتصال.", "error");
     }
 }
 
 export function listenToScannerSession(callback) {
-    console.log("listenToScannerSession: Setting up listener."); // New log
+    console.log("listenToScannerSession: Setting up listener.");
     if (scannerUnsubscribe) {
         scannerUnsubscribe();
-        console.log("listenToScannerSession: Unsubscribed from previous scanner listener."); // New log
+        console.log("listenToScannerSession: Unsubscribed from previous scanner listener.");
     }
 
     scannerUnsubscribe = onSnapshot(scannerSessionDocRef, async (docSnap) => {
-        console.log("listenToScannerSession: Scanner session snapshot received."); // New log
+        console.log("listenToScannerSession: Scanner session snapshot received.");
         if (docSnap.exists()) {
             const data = docSnap.data();
-            console.log("listenToScannerSession: Scanner data:", data); // New log
+            console.log("listenToScannerSession: Scanner data:", data);
             if (data.status === 'scanned' && data.scannedValue) {
                 if (callback) {
                     callback(data.scannedValue, data.purpose);
@@ -242,15 +239,15 @@ export function listenToScannerSession(callback) {
                     status: 'readyForNextScan',
                     scannedValue: null
                 });
-                console.log("listenToScannerSession: Scanned value processed, status updated."); // New log
+                console.log("listenToScannerSession: Scanned value processed, status updated.");
             } else if (data.status === 'phoneReady') {
                 showNotification("ماسح QR بالهاتف متصل وجاهز.", "success", 2000);
             }
         } else {
-            console.log("listenToScannerSession: Scanner session document does not exist."); // New log
+            console.log("listenToScannerSession: Scanner session document does not exist.");
         }
     }, (error) => {
-        console.error("listenToScannerSession: Firestore listener error:", error); // Updated log
+        console.error("listenToScannerSession: Firestore listener error:", error);
         showNotification("خطأ في الاتصال بالماسح.", "error");
     });
 }
