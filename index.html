@@ -1,144 +1,124 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - شيخ العرب</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تسجيل الدخول - شيخ العرب</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body class="form-page-body">
-    <div class="login-container content-wrapper">
-        <h1 class="login-title">تسجيل الدخول</h1>
-        <form id="loginForm" novalidate class="login-form">
-            <div class="input-group">
-                <label for="email">البريد الإلكتروني</label>
-                <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني" required autocomplete="email">
-                <span class="error-message" id="emailError"></span>
-            </div>
-            <div class="input-group">
-                <label for="password">كلمة المرور</label>
-                <input type="password" id="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password">
-                <span class="error-message" id="passwordError"></span>
-            </div>
-            <button type="submit" class="btn btn-primary login-btn">تسجيل الدخول</button>
-            <div id="globalError" class="error-message global-error"></div>
-        </form>
+  <div class="login-container content-wrapper">
+    <h1>تسجيل الدخول</h1>
+    <form id="loginForm" novalidate>
+      <div class="input-group">
+        <label for="email">البريد الإلكتروني</label>
+        <input type="email" id="email" placeholder="أدخل بريدك الإلكتروني" required autocomplete="email" />
+        <span class="error-message" id="emailError"></span>
+      </div>
 
-        <div class="social-login-section">
-            <p class="social-login-text">أو سجل الدخول باستخدام:</p>
-            <button type="button" class="btn btn-secondary google-login-btn" id="signInWithGoogle"><i class="ri-google-fill"></i> تسجيل الدخول بحساب Google</button>
-        </div>
+      <div class="input-group">
+        <label for="password">كلمة المرور</label>
+        <input type="password" id="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password" />
+        <span class="error-message" id="passwordError"></span>
+      </div>
 
-        <div class="forgot-password">
-            <a href="#" class="forgot-password-link">هل نسيت كلمة المرور؟</a>
-        </div>
+      <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
+      <div id="globalError" class="error-message" style="margin-top: 15px; text-align: center;"></div>
+    </form>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <p style="color: var(--text-light); margin-bottom: 15px;">أو سجل الدخول باستخدام:</p>
+      <button type="button" class="btn btn-secondary" id="signInWithGoogle" style="width: 100%;">
+        <i class="ri-google-fill"></i> تسجيل الدخول بحساب Google
+      </button>
     </div>
 
-    <div id="notification-container"></div>
-    <script src="shared.js" type="module"></script>
-    <script type="module">
-        console.log("Login page script loaded."); // تتبع التحميل
-        import { auth, showNotification } from "./shared.js";
-        import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    <div class="forgot-password">
+      <a href="#">هل نسيت كلمة المرور؟</a>
+    </div>
+  </div>
 
-        const loginForm = document.getElementById('loginForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const emailError = document.getElementById('emailError');
-        const passwordError = document.getElementById('passwordError');
-        const globalError = document.getElementById('globalError');
-        const signInWithGoogleBtn = document.getElementById('signInWithGoogle');
+  <div id="notification-container"></div>
 
-        console.log("loginForm element:", loginForm); // تتبع وجود العنصر
+  <script type="module" src="shared.js"></script>
+  <script type="module">
+    import { auth, showNotification } from "./shared.js";
+    import {
+      signInWithEmailAndPassword,
+      setPersistence,
+      browserLocalPersistence,
+      GoogleAuthProvider,
+      signInWithPopup
+    } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-        const showError = (el, msg) => { el.textContent = msg; };
-        const clearErrors = () => {
-            emailError.textContent = '';
-            passwordError.textContent = '';
-            globalError.textContent = '';
-        };
+    const loginForm = document.getElementById("loginForm");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const emailError = document.getElementById("emailError");
+    const passwordError = document.getElementById("passwordError");
+    const globalError = document.getElementById("globalError");
+    const signInWithGoogleBtn = document.getElementById("signInWithGoogle");
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            console.log("Login form submitted!"); // تتبع الإرسال
-            clearErrors();
+    const showError = (el, msg) => { el.textContent = msg; };
+    const clearErrors = () => {
+      emailError.textContent = "";
+      passwordError.textContent = "";
+      globalError.textContent = "";
+    };
 
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            let valid = true;
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearErrors();
 
-            if (!email) {
-                showError(emailError, 'الرجاء إدخال البريد الإلكتروني.');
-                valid = false;
-            }
-            if (!password) {
-                showError(passwordError, 'الرجاء إدخال كلمة المرور.');
-                valid = false;
-            }
-            if (!valid) {
-                showNotification("يرجى ملء الحقول المطلوبة بشكل صحيح.", "warning", 3000); // إظهار إشعار
-                return;
-            }
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      let valid = true;
 
-            try {
-                await setPersistence(auth, browserLocalPersistence);
-                await signInWithEmailAndPassword(auth, email, password);
-                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
-            } catch (error) {
-                console.error("Login Error:", error.code);
-                switch (error.code) {
-                    case 'auth/invalid-email':
-                        showError(emailError, 'صيغة البريد الإلكتروني غير صحيحة.');
-                        break;
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                    case 'auth/invalid-credential':
-                        showError(globalError, 'البريد الإلكتروني أو كلمة المرور غير صحيحة.');
-                        break;
-                    case 'auth/too-many-requests':
-                        showError(globalError, 'تم حظر الحساب مؤقتًا بسبب كثرة المحاولات. حاول مرة أخرى لاحقًا.');
-                        break;
-                    default:
-                        showError(globalError, 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
-                        break;
-                }
-                showNotification("فشل تسجيل الدخول. " + (globalError.textContent || emailError.textContent || passwordError.textContent), "error", 5000); //
-            }
-        });
+      if (!email) {
+        showError(emailError, "الرجاء إدخال البريد الإلكتروني.");
+        valid = false;
+      }
+      if (!password) {
+        showError(passwordError, "الرجاء إدخال كلمة المرور.");
+        valid = false;
+      }
+      if (!valid) return;
 
-        signInWithGoogleBtn.addEventListener('click', async () => {
-            console.log("Google Sign-in button clicked!"); // تتبع الضغط
-            const provider = new GoogleAuthProvider();
-            try {
-                await setPersistence(auth, browserLocalPersistence);
-                await signInWithPopup(auth, provider);
-                showNotification("تم تسجيل الدخول بحساب Google بنجاح!", "success"); //
-                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
-            } catch (error) {
-                console.error("Google Sign-in Error:", error.code);
-                let errorMessage = "فشل تسجيل الدخول بحساب Google.";
-                switch (error.code) {
-                    case 'auth/popup-closed-by-user':
-                        errorMessage = "تم إغلاق نافذة تسجيل الدخول.";
-                        break;
-                    case 'auth/cancelled-popup-request':
-                        errorMessage = "تم إلغاء طلب تسجيل الدخول.";
-                        break;
-                    case 'auth/operation-not-allowed':
-                        errorMessage = "تسجيل الدخول بحساب Google غير مفعل. الرجاء تفعيله من إعدادات Firebase.";
-                        break;
-                    case 'auth/account-exists-with-different-credential':
-                        errorMessage = "يوجد حساب بالفعل بهذا البريد الإلكتروني، ولكن ببيانات اعتماد مختلفة (مثلاً، قمت بالتسجيل بالبريد وكلمة المرور).";
-                        break;
-                    default:
-                        errorMessage = `حدث خطأ: ${error.message}`;
-                        break;
-                }
-                showNotification(errorMessage, "error", 5000); //
-            }
-        });
-    </script>
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        await signInWithEmailAndPassword(auth, email, password);
+        // التوجيه يتم تلقائيًا من خلال shared.js
+      } catch (error) {
+        switch (error.code) {
+          case "auth/invalid-email":
+            showError(emailError, "صيغة البريد الإلكتروني غير صحيحة.");
+            break;
+          case "auth/user-not-found":
+          case "auth/wrong-password":
+          case "auth/invalid-credential":
+            showError(globalError, "البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+            break;
+          case "auth/too-many-requests":
+            showError(globalError, "تم حظر الحساب مؤقتًا. حاول لاحقًا.");
+            break;
+          default:
+            showError(globalError, "حدث خطأ غير متوقع. حاول مجددًا.");
+            console.error("Login Error:", error);
+        }
+      }
+    });
+
+    signInWithGoogleBtn.addEventListener("click", async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Google Sign-In Error:", error);
+        showError(globalError, "فشل تسجيل الدخول بحساب Google.");
+      }
+    });
+  </script>
 </body>
 </html>
