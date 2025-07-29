@@ -108,7 +108,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
+        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js';
 
         const productSearchInput = document.getElementById('productSearchInput');
         const searchResultsDiv = document.getElementById('searchResults');
@@ -141,7 +141,7 @@
         }
 
         async function loadInvoiceSettings() {
-            invoiceSettings = getSettings(); // احصل على الإعدادات بعد تحميلها
+            invoiceSettings = getSettings();
         }
 
         function displaySearchResults(query) {
@@ -493,18 +493,12 @@
         
         viewSalesHistoryBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            const settings = getSettings();
-            const salesHistoryPassword = settings.salesHistoryPassword;
+            // تم إزالة التحقق من كلمة المرور هنا، والتوجيه مباشرة
             if (!canAccessSalesHistory()) {
                 showNotification("ليس لديك صلاحية للدخول إلى سجل المبيعات.", "error");
                 return;
             }
-            const password = prompt("الرجاء إدخال كلمة المرور لعرض سجل المبيعات:");
-            if (password === salesHistoryPassword) {
-                window.location.href = 'sales_history.html';
-            } else if (password !== null) {
-                showNotification("كلمة المرور غير صحيحة.", "error");
-            }
+            window.location.href = 'sales_history.html';
         });
 
         function updateNavigationPermissions() {
@@ -520,7 +514,7 @@
             }
         }
 
-        loadSettings().then(() => { // انتظر تحميل الإعدادات
+        loadSettings().then(() => {
             fetchAllProducts();
             loadInvoiceSettings();
             updateNavigationPermissions();
