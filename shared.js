@@ -102,20 +102,14 @@ onAuthStateChanged(auth, async (user) => {
     const currentPage = window.location.pathname.split('/').pop();
 
     if (!user && protectedPages.includes(currentPage)) {
-        // محاولة تسجيل الدخول التلقائي بكلمة المرور الافتراضية إذا كان المستخدم غير مسجل الدخول
-        try {
-            // يمكن إنشاء مستخدم بـ `test@example.com` وكلمة مرور `010274` في Firebase Auth يدويًا
-            // أو يمكن إزالة هذا الجزء بالكامل إذا كان الهدف هو فقط تجاوز التحقق للوصول
-            // Forcing sign-in with default credentials for demonstration/bypass purposes
-            await firebase.auth().signInWithEmailAndPassword("admin@default.com", DEFAULT_PASSWORD); // افتراض أن هناك مستخدم بهذا البريد وكلمة المرور
-            // إذا لم يكن هناك مستخدم، يجب إنشاء واحد يدوياً في Firebase Auth أو التعامل مع الخطأ
-        } catch (error) {
-            console.warn("Auto sign-in failed, redirecting to index.html:", error);
-            window.location.href = 'index.html';
-        }
+        // إذا كان المستخدم غير مسجل الدخول وهو يحاول الوصول لصفحة محمية، أعد توجيهه لصفحة تسجيل الدخول
+        window.location.href = 'index.html';
     } else if (user && currentPage === 'index.html') {
+        // إذا كان المستخدم مسجل الدخول وهو في صفحة تسجيل الدخول، أعد توجيهه للوحة التحكم
         window.location.href = 'dashboard.html';
     }
+    // ملاحظة: تم إزالة منطق تسجيل الدخول التلقائي هنا،
+    // لأنه تم نقله ليتم تنفيذه مباشرة عند الضغط على زر تسجيل الدخول في index.html
 });
 
 // --- DYNAMIC ACTIVE TAB & LOGOUT (تنشيط التبويب في القائمة وتسجيل الخروج) ---
