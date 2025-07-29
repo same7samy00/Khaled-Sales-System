@@ -36,19 +36,17 @@
             globalError.textContent = '';
         };
 
-        // تسجيل الدخول بالبريد الإلكتروني وكلمة المرور (تلقائيًا بكلمة المرور الافتراضية)
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             clearErrors();
 
-            const email = "admin@default.com"; // البريد الإلكتروني الافتراضي
-            const password = "010274"; // كلمة المرور الافتراضية
+            const email = "admin@default.com"; 
+            const password = "010274"; 
 
             try {
                 await setPersistence(auth, browserLocalPersistence);
                 await signInWithEmailAndPassword(auth, email, password);
                 showNotification("تم تسجيل الدخول بنجاح!", "success");
-                // إضافة التوجيه هنا بعد النجاح مباشرة
                 window.location.href = 'dashboard.html'; 
             } catch (error) {
                 console.error("Login Error:", error.code);
@@ -78,14 +76,12 @@
             }
         });
 
-        // تسجيل الدخول باستخدام Google (لم يتم تغيير هذا الجزء)
         signInWithGoogleBtn.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
                 await setPersistence(auth, browserLocalPersistence);
                 await signInWithPopup(auth, provider);
                 showNotification("تم تسجيل الدخول بحساب Google بنجاح!", "success");
-                // إضافة التوجيه هنا بعد النجاح مباشرة
                 window.location.href = 'dashboard.html';
             } catch (error) {
                 console.error("Google Sign-in Error:", error.code);
