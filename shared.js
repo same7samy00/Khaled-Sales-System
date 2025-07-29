@@ -1,12 +1,8 @@
 // --- SHARED JAVASCRIPT (shared.js) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-// تم تحديث هذا السطر لاستيراد GoogleAuthProvider و signInWithPopup
 import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import { getFirestore, doc, onSnapshot, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-// إذا كنت تستخدم Analytics، قم بإلغاء تعليق السطر التالي:
-// import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
 
-// --- CONFIG (MUST BE IDENTICAL EVERYWHERE) ---
 const firebaseConfig = {
     apiKey: "AIzaSyC9eufzO00_JtbdVoDrw-bJfF1PY3meYoE",
     authDomain: "new2025-d2fba.firebaseapp.com",
@@ -19,14 +15,10 @@ const firebaseConfig = {
 const SHARED_SCANNER_SESSION_ID = "YOUR_STORE_UNIQUE_SCANNER_ID_12345"; 
 const DEFAULT_PASSWORD = "010274"; 
 
-// --- FIREBASE INITIALIZATION ---
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-// إذا كنت تستخدم Analytics، قم بإلغاء تعليق السطر التالي وتهيئته:
-// const analytics = getAnalytics(app); 
 
-// --- GLOBAL SETTINGS & PERMISSIONS ---
 export const settingsDocRef = doc(db, 'settings', 'store_config');
 let currentSettings = {};
 let settingsUnsubscribe = null;
@@ -93,8 +85,6 @@ export function canDeleteSales() { return currentSettings.features?.canDeleteSal
 export function canAccessSettings() { return currentSettings.features?.canAccessSettings ?? true; }
 
 
-// --- AUTHENTICATION (المصادقة) ---
-// تم تعديل هذا الجزء للسماح بتسجيل الدخول التلقائي بكلمة المرور الافتراضية
 onAuthStateChanged(auth, async (user) => {
     await loadSettings(); 
 
@@ -102,17 +92,12 @@ onAuthStateChanged(auth, async (user) => {
     const currentPage = window.location.pathname.split('/').pop();
 
     if (!user && protectedPages.includes(currentPage)) {
-        // إذا كان المستخدم غير مسجل الدخول وهو يحاول الوصول لصفحة محمية، أعد توجيهه لصفحة تسجيل الدخول
         window.location.href = 'index.html';
     } else if (user && currentPage === 'index.html') {
-        // إذا كان المستخدم مسجل الدخول وهو في صفحة تسجيل الدخول، أعد توجيهه للوحة التحكم
         window.location.href = 'dashboard.html';
     }
-    // ملاحظة: تم إزالة منطق تسجيل الدخول التلقائي هنا،
-    // لأنه تم نقله ليتم تنفيذه مباشرة عند الضغط على زر تسجيل الدخول في index.html
 });
 
-// --- DYNAMIC ACTIVE TAB & LOGOUT (تنشيط التبويب في القائمة وتسجيل الخروج) ---
 document.addEventListener('DOMContentLoaded', () => {
     const currentPath = window.location.pathname.split('/').pop();
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -135,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- NOTIFICATION SYSTEM (نظام الإشعارات) ---
 const notificationContainer = document.getElementById('notification-container');
 
 export function showNotification(message, type = 'info', duration = 4000) {
@@ -184,7 +168,6 @@ export function showConfirmation(message, onConfirm) {
     notificationDiv.querySelector('.confirm-cancel').addEventListener('click', removeNotification);
 }
 
-// --- QR SCANNER COMMUNICATION (التواصل مع ماسح QR) ---
 const scannerSessionDocRef = doc(db, 'scannerSessions', SHARED_SCANNER_SESSION_ID);
 let scannerUnsubscribe = null;
 
