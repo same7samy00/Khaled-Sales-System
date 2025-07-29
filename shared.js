@@ -89,6 +89,21 @@ function updateDynamicContent() {
   }
 }
 
+export function showNotification(message, type = "info", duration = 3000) {
+  const container = document.getElementById("notification-container");
+  if (!container) return;
+
+  const notification = document.createElement("div");
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `<i class="ri-information-line"></i><span>${message}</span>`;
+  container.appendChild(notification);
+
+  setTimeout(() => {
+    notification.style.animation = "fadeOut 0.3s forwards";
+    notification.addEventListener("animationend", () => notification.remove());
+  }, duration);
+}
+
 loadSettings();
 
 export function getSettings() { return currentSettings; }
