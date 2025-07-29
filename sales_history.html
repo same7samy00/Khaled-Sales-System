@@ -86,31 +86,22 @@
         </div>
     </div>
 
-    <div id="passwordModal" class="password-modal">
-        <div class="password-modal-content">
-            <h2>الرجاء إدخال كلمة المرور</h2>
-            <input type="password" id="passwordInput" placeholder="كلمة المرور">
-            <div class="error-message" id="passwordError"></div>
-            <button class="btn btn-primary" id="submitPasswordBtn">دخول</button>
-        </div>
-    </div>
-
-
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, getSettings, loadSettings, canDeleteSales, canAccessSalesHistory, canAccessSettings } from './shared.js'; // تم تصحيح الاستيراد
+        import { db, showNotification, showConfirmation, getSettings, loadSettings, canDeleteSales, canAccessSalesHistory, canAccessSettings } from './shared.js';
 
         const salesTableBody = document.getElementById('salesTableBody');
         const salesDetailsModal = document.getElementById('salesDetailsModal');
         const modalDetails = document.getElementById('modalDetails');
         const modalProductsTableBody = document.getElementById('modalProductsTableBody');
         const closeModalBtn = salesDetailsModal.querySelector('.close-button');
-        const passwordModal = document.getElementById('passwordModal');
-        const passwordInput = document.getElementById('passwordInput');
-        const passwordError = document.getElementById('passwordError');
-        const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+        // تم إزالة الإشارات إلى عناصر مودال كلمة المرور
+        // const passwordModal = document.getElementById('passwordModal');
+        // const passwordInput = document.getElementById('passwordInput');
+        // const passwordError = document.getElementById('passwordError');
+        // const submitPasswordBtn = document.getElementById('submitPasswordBtn');
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const filterSalesBtn = document.getElementById('filterSalesBtn');
@@ -120,39 +111,18 @@
 
         let allSales = [];
 
-        async function checkPassword() {
-            const settings = getSettings();
-            const SALES_ADMIN_PASSWORD = settings.salesHistoryPassword; 
-
+        // تم إزالة دالة checkPassword() واستدعائها
+        async function initializePage() {
             if (!canAccessSalesHistory()) {
                 showNotification("ليس لديك صلاحية للدخول إلى سجل المبيعات.", "error");
                 setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 return;
             }
-            
-            passwordModal.style.display = 'flex';
-            passwordInput.value = '';
-            passwordError.textContent = '';
-            passwordInput.focus();
-
-            submitPasswordBtn.onclick = () => {
-                if (passwordInput.value === SALES_ADMIN_PASSWORD) {
-                    passwordModal.style.display = 'none';
-                    fetchSales();
-                    if (!canDeleteSales()) {
-                        deleteAllSalesBtn.disabled = true;
-                        deleteAllSalesBtn.textContent = 'ليس لديك صلاحية الحذف';
-                    }
-                } else {
-                    passwordError.textContent = "كلمة المرور غير صحيحة.";
-                }
-            };
-
-            passwordInput.addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') {
-                    submitPasswordBtn.click();
-                }
-            });
+            fetchSales();
+            if (!canDeleteSales()) {
+                deleteAllSalesBtn.disabled = true;
+                deleteAllSalesBtn.textContent = 'ليس لديك صلاحية الحذف';
+            }
         }
 
         async function fetchSales() {
@@ -336,7 +306,7 @@
 
         loadSettings().then(() => { // انتظر تحميل الإعدادات
             updateNavigationPermissions();
-            checkPassword();
+            initializePage(); // استدعاء initializePage لبدء جلب البيانات مباشرة
         });
     </script>
 </body>
