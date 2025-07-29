@@ -101,6 +101,7 @@
 
         async function fetchProducts() {
             console.log("fetchProducts: Attempting to fetch products...");
+            console.log("fetchProducts: Current db object:", db);
             productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder">جاري تحميل المنتجات...</td></tr>';
             
             if (unsubscribeProducts) {
@@ -109,8 +110,17 @@
             }
 
             try {
+                if (!db) {
+                    console.error("fetchProducts: Firestore 'db' object is not initialized. Cannot fetch products.");
+                    showNotification("خطأ: لم يتم تهيئة قاعدة البيانات. يرجى إعادة تحميل الصفحة.", "error");
+                    productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">خطأ في تهيئة قاعدة البيانات.</td></tr>';
+                    return;
+                }
+
                 const productsCollectionRef = collection(db, "products");
+                console.log("fetchProducts: productsCollectionRef created.");
                 const q = query(productsCollectionRef, orderBy("createdAt", "desc"));
+                console.log("fetchProducts: Query created for products.");
 
                 unsubscribeProducts = onSnapshot(q, (querySnapshot) => {
                     console.log("Firestore Snapshot received for products.");
@@ -122,14 +132,21 @@
                     renderProducts();
                 }, (error) => {
                     console.error("Error listening to products collection: ", error);
+                    if (error.code === 'permission-denied') {
+                        showNotification("خطأ: رفض الوصول لقاعدة البيانات. يرجى التحقق من قواعد أمان Firebase.", "error", 7000);
+                    } else if (error.code === 'failed-precondition' && error.message.includes("The query requires an index")) {
+                        showNotification("خطأ: يتطلب الاستعلام فهرسًا. يرجى إنشاء الفهرس المطلوب في Firebase Console.", "error", 10000);
+                        console.error("Firebase Indexing Error Details:", error.message);
+                    } else {
+                        showNotification("خطأ في تحميل المنتجات.", "error");
+                    }
                     productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تحميل المنتجات.</td></tr>';
-                    showNotification("خطأ في تحميل المنتجات.", "error");
                 });
 
             } catch (e) {
                 console.error("Error setting up product listener: ", e);
-                productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تهيئة جلب المنتجات.</td></tr>';
                 showNotification("خطأ في تهيئة جلب المنتجات.", "error");
+                productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تهيئة جلب المنتجات.</td></tr>';
             }
         }
 
@@ -188,13 +205,14 @@
         
         productsTableBody.addEventListener('click', (e) => {
             const editBtn = e.target.closest('.edit-btn');
-            if (editBtn && !editBtn.disabled) { // Added back the disabled check
+            if (editBtn && !editBtn.disabled) {
                 window.location.href = `add_product.html?id=${editBtn.dataset.id}`;
                 return;
             }
             
             const deleteBtn = e.target.closest('.delete-btn');
-            if (deleteBtn && !deleteBtn.disabled && canDeleteProducts()) { // Added back the full check
+            // تأكد من أن هذا الشرط يتحقق وأن الصلاحيات تسمح بالحذف
+            if (deleteBtn && !deleteBtn.disabled && canDeleteProducts()) {
                 const productId = deleteBtn.dataset.id;
                 showConfirmation('هل أنت متأكد أنك تريد حذف هذا المنتج؟', async () => {
                     try {
@@ -205,7 +223,7 @@
                         showNotification('فشل حذف المنتج.', 'error');
                     }
                 });
-            } else if (deleteBtn && deleteBtn.disabled) {
+            } else if (deleteBtn && deleteBtn.disabled) { // هذا الشرط يجب أن يكون للتحقق فقط، وليس داخل try/catch
                  showNotification("ليس لديك صلاحية لحذف المنتجات.", "error");
             }
         });
@@ -238,7 +256,6 @@
             }
         }
 
-        // استدعاء دالة التهيئة عند تحميل DOM
         document.addEventListener('DOMContentLoaded', initializeInventoryPage);
     </script>
 </body>
