@@ -1,32 +1,123 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>شيخ العرب</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - شيخ العرب</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"> <link rel="stylesheet" href="style.css">
 </head>
 <body class="form-page-body">
-  <div class="login-container content-wrapper">
-    <h1>مرحبًا بك في شيخ العرب</h1>
-    <form id="loginForm" novalidate>
-      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
-        الدخول إلى النظام
-      </button>
-    </form>
-  </div>
+    <div class="login-container content-wrapper">
+        <h1>تسجيل الدخول</h1>
+        <form id="loginForm" novalidate>
+            <div id="globalError" class="error-message" style="margin-top: 15px; text-align: center;"></div>
+            <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
+        </form>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <p style="color: var(--text-light); margin-bottom: 15px;">أو سجل الدخول باستخدام:</p>
+            <button type="button" class="btn btn-secondary" id="signInWithGoogle" style="width: 100%;"><i class="ri-google-fill"></i> تسجيل الدخول بحساب Google</button>
+        </div>
 
-  <div id="notification-container"></div>
+        </div>
 
-  <script type="module" src="shared.js"></script>
-  <script type="module">
-    const loginForm = document.getElementById("loginForm");
-    loginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      window.location.href = "dashboard.html";
-    });
-  </script>
+    <div id="notification-container"></div> <script src="shared.js" type="module"></script>
+    <script type="module">
+        import { auth, showNotification } from "./shared.js";
+        import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+        const loginForm = document.getElementById('loginForm');
+        // تم إزالة الإشارات إلى emailInput و passwordInput لأن الحقول لم تعد موجودة
+        // const emailInput = document.getElementById('email');
+        // const passwordInput = document.getElementById('password');
+        // تم إزالة الإشارات إلى emailError و passwordError
+        // const emailError = document.getElementById('emailError');
+        // const passwordError = document.getElementById('passwordError');
+        const globalError = document.getElementById('globalError');
+        const signInWithGoogleBtn = document.getElementById('signInWithGoogle');
+
+        const showError = (el, msg) => { el.textContent = msg; };
+        const clearErrors = () => {
+            // تم إزالة مسح أخطاء البريد الإلكتروني وكلمة المرور
+            // emailError.textContent = '';
+            // passwordError.textContent = '';
+            globalError.textContent = '';
+        };
+
+        // تسجيل الدخول بالبريد الإلكتروني وكلمة المرور (تلقائيًا بكلمة المرور الافتراضية)
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            // استخدام البريد الإلكتروني وكلمة المرور الافتراضية
+            const email = "admin@default.com"; // يمكنك تغيير هذا البريد إلى أي بريد إلكتروني تود استخدامه كافتراضي
+            const password = "010274"; // كلمة المرور الافتراضية التي طلبتها
+
+            try {
+                await setPersistence(auth, browserLocalPersistence);
+                await signInWithEmailAndPassword(auth, email, password);
+                showNotification("تم تسجيل الدخول بنجاح!", "success");
+                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
+            } catch (error) {
+                console.error("Login Error:", error.code);
+                let errorMessage = "فشل تسجيل الدخول التلقائي.";
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'المستخدم الافتراضي غير موجود. الرجاء التأكد من إنشاء مستخدم بـ "admin@default.com" وكلمة المرور "010274" في Firebase Authentication.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'كلمة المرور الافتراضية غير صحيحة للمستخدم الافتراضي.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'البريد الإلكتروني الافتراضي غير صحيح.';
+                        break;
+                    case 'auth/invalid-credential':
+                        errorMessage = 'بيانات الاعتماد الافتراضية غير صحيحة.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'تم حظر الحساب مؤقتًا بسبب كثرة المحاولات. حاول مرة أخرى لاحقًا.';
+                        break;
+                    default:
+                        errorMessage = 'حدث خطأ غير متوقع أثناء تسجيل الدخول التلقائي. يرجى المحاولة مرة أخرى.';
+                        break;
+                }
+                showError(globalError, errorMessage);
+                showNotification(errorMessage, "error", 5000);
+            }
+        });
+
+        // تسجيل الدخول باستخدام Google (لم يتم تغيير هذا الجزء)
+        signInWithGoogleBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await setPersistence(auth, browserLocalPersistence);
+                await signInWithPopup(auth, provider);
+                showNotification("تم تسجيل الدخول بحساب Google بنجاح!", "success");
+                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
+            } catch (error) {
+                console.error("Google Sign-in Error:", error.code);
+                let errorMessage = "فشل تسجيل الدخول بحساب Google.";
+                switch (error.code) {
+                    case 'auth/popup-closed-by-user':
+                        errorMessage = "تم إغلاق نافذة تسجيل الدخول.";
+                        break;
+                    case 'auth/cancelled-popup-request':
+                        errorMessage = "تم إلغاء طلب تسجيل الدخول.";
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = "تسجيل الدخول بحساب Google غير مفعل. الرجاء تفعيله من إعدادات Firebase.";
+                        break;
+                    case 'auth/account-exists-with-different-credential':
+                        errorMessage = "يوجد حساب بالفعل بهذا البريد الإلكتروني، ولكن ببيانات اعتماد مختلفة (مثلاً، قمت بالتسجيل بالبريد وكلمة المرور).";
+                        break;
+                    default:
+                        errorMessage = `حدث خطأ: ${error.message}`;
+                        break;
+                }
+                showNotification(errorMessage, "error", 5000);
+            }
+        });
+    </script>
 </body>
 </html>
