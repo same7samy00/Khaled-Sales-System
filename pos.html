@@ -129,33 +129,62 @@
         let allProducts = [];
         let cart = [];
         let invoiceSettings = {};
-        let unsubscribeProductsPos = null; // لتخزين وظيفة إلغاء الاشتراك
+        let unsubscribeProductsPos = null;
+
+        async function initializePosPage() {
+            console.log("pos.html: Initializing POS Page. Calling loadSettings...");
+            await loadSettings(); 
+            console.log("pos.html: loadSettings completed. Calling updateNavigationPermissions, fetchAllProducts, and loadInvoiceSettings.");
+            updateNavigationPermissions();
+            fetchAllProducts(); 
+            loadInvoiceSettings();
+        }
 
         async function fetchAllProducts() {
-            // إلغاء الاشتراك السابق لتجنب تكرار المستمعين
+            console.log("fetchAllProducts (POS): Attempting to fetch products...");
+            console.log("fetchAllProducts (POS): Current db object:", db);
+
             if (unsubscribeProductsPos) {
                 unsubscribeProductsPos();
+                console.log("fetchAllProducts (POS): Unsubscribed from previous listener.");
             }
 
             try {
+                if (!db) {
+                    console.error("fetchAllProducts (POS): Firestore 'db' object is not initialized. Cannot fetch products.");
+                    showNotification("خطأ: لم يتم تهيئة قاعدة البيانات. يرجى إعادة تحميل الصفحة.", "error");
+                    return;
+                }
+
                 const productsCollectionRef = collection(db, "products");
-                const q = query(productsCollectionRef); // لا يوجد ترتيب هنا لأن البحث سيكون بالاسم/الباركود
-                
+                console.log("fetchAllProducts (POS): productsCollectionRef created.");
+                const q = query(productsCollectionRef); 
+                console.log("fetchAllProducts (POS): Query created for products. Attaching onSnapshot listener.");
+
                 unsubscribeProductsPos = onSnapshot(q, (querySnapshot) => {
-                    console.log("Firestore Snapshot received for POS products."); //
+                    console.log("Firestore Snapshot received for POS products.");
                     allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    console.log("Fetched products for POS:", allProducts); //
-                    // إذا كان هناك نص بحث، قم بتحديث النتائج
+                    console.log("Fetched products data for POS:", allProducts);
+                    if (allProducts.length === 0) {
+                        console.log("No products found for POS in Firestore.");
+                    }
                     if (productSearchInput.value.trim().length >= 2) {
                         displaySearchResults(productSearchInput.value.trim());
                     }
                 }, (error) => {
-                    console.error("Error listening to products collection for POS: ", error); //
-                    showNotification("خطأ في تحميل المنتجات لنقطة البيع.", "error");
+                    console.error("Error listening to products collection for POS: ", error);
+                    if (error.code === 'permission-denied') {
+                        showNotification("خطأ: رفض الوصول لقاعدة البيانات. يرجى التحقق من قواعد أمان Firebase.", "error", 7000);
+                    } else if (error.code === 'failed-precondition' && error.message.includes("The query requires an index")) {
+                        showNotification("خطأ: يتطلب الاستعلام فهرسًا. يرجى إنشاء الفهرس المطلوب في Firebase Console.", "error", 10000);
+                        console.error("Firebase Indexing Error Details:", error.message);
+                    } else {
+                        showNotification("خطأ في تحميل المنتجات لنقطة البيع.", "error");
+                    }
                 });
 
             } catch (e) {
-                console.error("Error setting up POS product listener: ", e); //
+                console.error("Error setting up POS product listener: ", e);
                 showNotification("خطأ في تهيئة جلب المنتجات لنقطة البيع.", "error");
             }
         }
@@ -165,15 +194,21 @@
         }
 
         function displaySearchResults(query) {
+            console.log("displaySearchResults: Processing search query:", query);
             searchResultsDiv.innerHTML = '';
             searchResultsDiv.style.display = 'none';
 
-            if (query.length < 2) return;
+            if (query.length < 2) {
+                console.log("Search query too short.");
+                return;
+            }
 
             const filtered = allProducts.filter(p =>
                 (p.name && p.name.toLowerCase().includes(query.toLowerCase())) ||
                 (p.barcode && p.barcode.toLowerCase().includes(query.toLowerCase()))
             ).slice(0, 10);
+
+            console.log("displaySearchResults: Filtered results:", filtered);
 
             if (filtered.length === 0) {
                 searchResultsDiv.innerHTML = '<div class="search-result-item no-results">لا توجد نتائج مطابقة</div>';
@@ -301,10 +336,18 @@
                 return;
             }
 
-
             showConfirmation("هل أنت متأكد من إتمام عملية البيع؟", async () => {
                 completeSaleBtn.disabled = true;
                 completeSaleBtn.textContent = 'جاري المعالجة...';
+
+                // Ensure db is initialized before making Firestore calls
+                if (!db) {
+                    console.error("completeSale: Firestore 'db' object is not initialized.");
+                    showNotification("خطأ: لم يتم تهيئة قاعدة البيانات. يرجى إعادة تحميل الصفحة.", "error");
+                    completeSaleBtn.disabled = false;
+                    completeSaleBtn.textContent = 'إتمام البيع';
+                    return;
+                }
 
                 const batch = writeBatch(db);
                 let hasStockIssue = false;
@@ -372,7 +415,6 @@
                     renderCart();
                     amountPaidInput.value = 0;
                     discountInput.value = 0;
-                    // fetchAllProducts() will be triggered by onSnapshot automatically
                 } catch (e) {
                     console.error("Error completing sale:", e);
                     showNotification("فشل إتمام عملية البيع.", "error");
@@ -533,11 +575,7 @@
             }
         }
 
-        loadSettings().then(() => {
-            fetchAllProducts(); // بدء جلب البيانات باستخدام onSnapshot
-            loadInvoiceSettings();
-            updateNavigationPermissions();
-        });
+        document.addEventListener('DOMContentLoaded', initializePosPage); // Call initializer
     </script>
 </body>
 </html>
