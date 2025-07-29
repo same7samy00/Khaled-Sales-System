@@ -1,9 +1,7 @@
 // --- SHARED JAVASCRIPT (shared.js) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-// تم تحديث هذا السطر لاستيراد GoogleAuthProvider و signInWithPopup
 import { getAuth, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import { getFirestore, doc, onSnapshot, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-// إذا كنت تستخدم Analytics، قم بإلغاء تعليق السطر التالي:
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
 
 // --- CONFIG (MUST BE IDENTICAL EVERYWHERE) ---
@@ -23,7 +21,6 @@ const DEFAULT_PASSWORD = "010274";
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-// إذا كنت تستخدم Analytics، قم بإلغاء تعليق السطر التالي وتهيئته:
 const analytics = getAnalytics(app);
 
 // --- GLOBAL SETTINGS & PERMISSIONS ---
@@ -38,7 +35,9 @@ export async function loadSettings() {
         settingsUnsubscribe = onSnapshot(settingsDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 currentSettings = docSnap.data();
+                console.log("Settings loaded:", currentSettings); // تتبع التحميل
             } else {
+                console.log("No settings found, setting defaults."); // تتبع الإعدادات الافتراضية
                 currentSettings = {
                     storeName: "شيخ العرب",
                     invoiceAddress: "عنوان المتجر",
@@ -55,14 +54,15 @@ export async function loadSettings() {
                         canAccessSettings: true
                     }
                 };
-                setDoc(settingsDocRef, currentSettings, { merge: true }).catch(e => console.error("Error setting default settings:", e));
+                setDoc(settingsDocRef, currentSettings, { merge: true })
+                    .then(() => console.log("Default settings set."))
+                    .catch(e => console.error("Error setting default settings:", e));
             }
             updateDynamicContent();
             resolve(currentSettings);
         }, (error) => {
             console.error("Error listening to settings:", error);
-            // تم إصلاح: استخدام showNotification المصدرة
-            showNotification("خطأ في تحميل الإعدادات.", "error");
+            export showNotification("خطأ في تحميل الإعدادات.", "error"); // تم إصلاح: استخدام showNotification المصدرة
             resolve(currentSettings);
         });
     });
@@ -80,6 +80,7 @@ function updateDynamicContent() {
     }
 }
 
+// استدعاء loadSettings في البداية لضمان تحميل الإعدادات فورًا
 loadSettings();
 
 export function getSettings() {
@@ -96,16 +97,22 @@ export function canAccessSettings() { return currentSettings.features?.canAccess
 
 // --- AUTHENTICATION (المصادقة) ---
 onAuthStateChanged(auth, async (user) => {
+    // تأكد من أن loadSettings تم استدعاؤها وانتهاءها قبل التوجيه
     await loadSettings();
 
     const protectedPages = ['dashboard.html', 'inventory.html', 'add_product.html', 'pos.html', 'sales_history.html', 'settings.html'];
     const currentPage = window.location.pathname.split('/').pop();
 
+    console.log("onAuthStateChanged - User:", user ? user.email : "No user", "Current Page:", currentPage);
+
     if (!user && protectedPages.includes(currentPage)) {
+        console.log("Not logged in, redirecting to index.html");
         window.location.href = 'index.html';
     } else if (user && currentPage === 'index.html') {
+        console.log("Logged in, redirecting to dashboard.html");
         window.location.href = 'dashboard.html';
     }
+    // إذا كان المستخدم مسجلاً الدخول وفي صفحة محمية، لا تفعل شيئًا، اسمح له بالبقاء
 });
 
 // --- DYNAMIC ACTIVE TAB & LOGOUT (تنشيط التبويب في القائمة وتسجيل الخروج) ---
@@ -123,10 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutButton.addEventListener('click', (e) => {
             e.preventDefault();
             // تم إصلاح: استخدام showConfirmation المصدرة
-            showConfirmation("هل أنت متأكد من تسجيل الخروج؟", async () => {
+            export showConfirmation("هل أنت متأكد من تسجيل الخروج؟", async () => {
                 await signOut(auth);
                 // تم إصلاح: استخدام showNotification المصدرة
-                showNotification("تم تسجيل الخروج بنجاح.", "info");
+                export showNotification("تم تسجيل الخروج بنجاح.", "info");
                 window.location.href = 'index.html';
             });
         });
@@ -190,7 +197,7 @@ let scannerUnsubscribe = null;
 
 export async function requestScan(purpose) {
     // تم إصلاح: استخدام showNotification المصدرة
-    showNotification("جاري إرسال طلب المسح إلى الهاتف...", "info");
+    export showNotification("جاري إرسال طلب المسح إلى الهاتف...", "info");
     try {
         await setDoc(scannerSessionDocRef, {
             status: 'scanRequested',
@@ -200,7 +207,7 @@ export async function requestScan(purpose) {
     } catch (error) {
         console.error("Error requesting scan:", error);
         // تم إصلاح: استخدام showNotification المصدرة
-        showNotification("فشل طلب المسح. تحقق من الاتصال.", "error");
+        export showNotification("فشل طلب المسح. تحقق من الاتصال.", "error");
     }
 }
 
@@ -220,12 +227,12 @@ export function listenToScannerSession(callback) {
                 });
             } else if (data.status === 'phoneReady') {
                 // تم إصلاح: استخدام showNotification المصدرة
-                showNotification("ماسح QR بالهاتف متصل وجاهز.", "success", 2000);
+                export showNotification("ماسح QR بالهاتف متصل وجاهز.", "success", 2000);
             }
         }
     }, (error) => {
         console.error("Error listening to scanner session:", error);
         // تم إصلاح: استخدام showNotification المصدرة
-        showNotification("خطأ في الاتصال بالماسح.", "error");
+        export showNotification("خطأ في الاتصال بالماسح.", "error");
     });
 }
