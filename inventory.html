@@ -77,7 +77,7 @@
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
-        import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, canAddProducts, canEditProducts, canDeleteProducts, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js';
 
         const productsTableBody = document.getElementById('productsTableBody');
@@ -88,18 +88,36 @@
         const settingsLink = document.getElementById('settingsLink');
 
         let allProducts = [];
+        let unsubscribeProducts = null; // لتخزين وظيفة إلغاء الاشتراك
 
         async function fetchProducts() {
             productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder">جاري تحميل المنتجات...</td></tr>';
+            
+            // إلغاء الاشتراك السابق لتجنب تكرار المستمعين
+            if (unsubscribeProducts) {
+                unsubscribeProducts();
+            }
+
             try {
-                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderProducts();
+                const productsCollectionRef = collection(db, "products");
+                const q = query(productsCollectionRef, orderBy("createdAt", "desc"));
+
+                // استخدام onSnapshot لجلب البيانات في الوقت الفعلي وتحديثها
+                unsubscribeProducts = onSnapshot(q, (querySnapshot) => {
+                    console.log("Firestore Snapshot received for products."); //
+                    allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log("Fetched products:", allProducts); //
+                    renderProducts();
+                }, (error) => {
+                    console.error("Error listening to products collection: ", error); //
+                    productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تحميل المنتجات.</td></tr>';
+                    showNotification("خطأ في تحميل المنتجات.", "error");
+                });
+
             } catch (e) {
-                console.error("Error fetching products: ", e);
-                productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تحميل المنتجات.</td></tr>';
-                showNotification("خطأ في تحميل المنتجات.", "error");
+                console.error("Error setting up product listener: ", e); //
+                productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تهيئة جلب المنتجات.</td></tr>';
+                showNotification("خطأ في تهيئة جلب المنتجات.", "error");
             }
         }
 
@@ -168,8 +186,7 @@
                     try {
                         await deleteDoc(doc(db, "products", productId));
                         showNotification('تم حذف المنتج بنجاح!', 'success');
-                        allProducts = allProducts.filter(p => p.id !== productId);
-                        renderProducts();
+                        // لا داعي لإعادة جلب كل المنتجات يدويا هنا، onSnapshot سيتولى الأمر
                     } catch (err) {
                         console.error("Error deleting document: ", err);
                         showNotification('فشل حذف المنتج.', 'error');
@@ -209,7 +226,7 @@
         }
 
         loadSettings().then(() => {
-            fetchProducts();
+            fetchProducts(); // بدء جلب البيانات باستخدام onSnapshot
             updateNavigationPermissions();
         });
     </script>
