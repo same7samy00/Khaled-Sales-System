@@ -78,7 +78,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, canAddProducts, canEditProducts, canDeleteProducts, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js'; // أضف loadSettings
+        import { db, showNotification, showConfirmation, listenToScannerSession, requestScan, canAddProducts, canEditProducts, canDeleteProducts, getSettings, loadSettings, canAccessSalesHistory, canAccessSettings } from './shared.js';
 
         const productsTableBody = document.getElementById('productsTableBody');
         const searchInput = document.getElementById('searchProduct');
@@ -208,7 +208,7 @@
             }
         }
 
-        loadSettings().then(() => { // انتظر تحميل الإعدادات
+        loadSettings().then(() => {
             fetchProducts();
             updateNavigationPermissions();
         });
