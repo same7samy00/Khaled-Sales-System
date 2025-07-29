@@ -97,11 +97,6 @@
         const modalDetails = document.getElementById('modalDetails');
         const modalProductsTableBody = document.getElementById('modalProductsTableBody');
         const closeModalBtn = salesDetailsModal.querySelector('.close-button');
-        // تم إزالة الإشارات إلى عناصر مودال كلمة المرور
-        // const passwordModal = document.getElementById('passwordModal');
-        // const passwordInput = document.getElementById('passwordInput');
-        // const passwordError = document.getElementById('passwordError');
-        // const submitPasswordBtn = document.getElementById('submitPasswordBtn');
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const filterSalesBtn = document.getElementById('filterSalesBtn');
@@ -119,6 +114,7 @@
                 return;
             }
             fetchSales();
+            // تأكد من تحديث حالة الزر بناءً على الصلاحيات بعد تحميل الإعدادات
             if (!canDeleteSales()) {
                 deleteAllSalesBtn.disabled = true;
                 deleteAllSalesBtn.textContent = 'ليس لديك صلاحية الحذف';
@@ -304,9 +300,9 @@
             }
         }
 
-        loadSettings().then(() => { // انتظر تحميل الإعدادات
+        loadSettings().then(() => {
             updateNavigationPermissions();
-            initializePage(); // استدعاء initializePage لبدء جلب البيانات مباشرة
+            initializePage();
         });
     </script>
 </body>
