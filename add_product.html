@@ -99,9 +99,6 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            // No need for .then here as canAddProducts/canEditProducts get updated via onSnapshot in shared.js
-            // The logic runs, and if settings are not loaded immediately, they will update later.
-            // For initial page load with immediate redirect, this is usually acceptable.
             if (editingProductId && !canEditProducts()) {
                 showNotification("ليس لديك صلاحية لتعديل المنتجات.", "error");
                 setTimeout(() => window.location.href = 'inventory.html', 1500);
@@ -257,9 +254,6 @@
             }
         });
         
-        // هنا لا نحتاج لـ .then على getSettings() لأن canEditProducts/canAddProducts
-        // تعتمد على currentSettings التي يتم تحديثها بواسطة loadSettings في shared.js.
-        // loadProductForEdit() سيتم استدعاؤها بعد تحميل Shared.js
         loadProductForEdit();
     </script>
 </body>
