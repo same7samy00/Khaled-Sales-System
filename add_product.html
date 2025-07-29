@@ -82,7 +82,7 @@
     <script src="shared.js" type="module"></script>
     <script type="module">
         import { getFirestore, collection, addDoc, doc, updateDoc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { db, showNotification, listenToScannerSession, requestScan, canAddProducts, canEditProducts, getSettings } from './shared.js';
+        import { db, showNotification, listenToScannerSession, requestScan, canAddProducts, canEditProducts, getSettings, loadSettings } from './shared.js'; // Added loadSettings
 
         const pageTitle = document.getElementById('pageTitle');
         const saveBtn = document.getElementById('saveProductBtn');
@@ -98,7 +98,12 @@
             barcode: { input: document.getElementById('productBarcode'), error: document.getElementById('productBarcodeError') }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize page function
+        async function initializeAddProductPage() {
+            console.log("add_product.html: Initializing Add/Edit Product Page. Calling loadSettings...");
+            await loadSettings(); // Ensure settings are loaded first
+            console.log("add_product.html: loadSettings completed.");
+
             if (editingProductId && !canEditProducts()) {
                 showNotification("ليس لديك صلاحية لتعديل المنتجات.", "error");
                 setTimeout(() => window.location.href = 'inventory.html', 1500);
@@ -106,7 +111,12 @@
                 showNotification("ليس لديك صلاحية لإضافة منتجات.", "error");
                 setTimeout(() => window.location.href = 'inventory.html', 1500);
             }
-        });
+
+            if (editingProductId) {
+                loadProductForEdit();
+            }
+        }
+
 
         function validateForm() {
             let isValid = true;
@@ -148,6 +158,16 @@
 
             const name = fields.name.input.value.trim();
             const barcode = fields.barcode.input.value.trim() || null;
+
+            // Ensure db is initialized before making Firestore calls
+            if (!db) {
+                console.error("saveProduct: Firestore 'db' object is not initialized.");
+                showNotification("خطأ: لم يتم تهيئة قاعدة البيانات. يرجى إعادة تحميل الصفحة.", "error");
+                saveBtn.disabled = false;
+                saveBtn.textContent = editingProductId ? 'حفظ التعديلات' : 'حفظ المنتج';
+                return;
+            }
+
 
             const productsRef = collection(db, "products");
             const nameQuery = query(productsRef, where("name", "==", name));
@@ -223,6 +243,13 @@
                 showNotification("ليس لديك صلاحية لتعديل المنتجات. لا يمكن حفظ التغييرات.", "error");
             }
 
+            // Ensure db is initialized before making Firestore calls
+            if (!db) {
+                console.error("loadProductForEdit: Firestore 'db' object is not initialized.");
+                showNotification("خطأ: لم يتم تهيئة قاعدة البيانات. يرجى إعادة تحميل الصفحة.", "error");
+                return;
+            }
+
             try {
                 const docRef = doc(db, "products", editingProductId);
                 const docSnap = await getDoc(docRef);
@@ -254,7 +281,7 @@
             }
         });
         
-        loadProductForEdit();
+        document.addEventListener('DOMContentLoaded', initializeAddProductPage); // Call initializer
     </script>
 </body>
 </html>
