@@ -433,7 +433,6 @@
             invoiceWindow.document.write('</div>');
 
             invoiceWindow.document.write(`<p class="thank-you">${invoiceSettings.invoiceThankYou || 'شكراً لتسوقكم من شيخ العرب!'}</p>`);
-            invoiceWindow.document.write('</body></html>');
             invoiceWindow.document.close();
             invoiceWindow.print();
         }
