@@ -131,7 +131,7 @@
     <script type="module">
         import { auth, db, showNotification, showConfirmation, settingsDocRef, getSettings, loadSettings, canAccessSettings } from './shared.js';
         import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"; // Import onSnapshot
 
         const storeNameInput = document.getElementById('storeName');
         const invoiceAddressInput = document.getElementById('invoiceAddress');
@@ -146,7 +146,7 @@
         const newAuthPasswordError = document.getElementById('newAuthPasswordError');
 
         const newSalesPasswordInput = document.getElementById('newSalesPassword');
-        const changeSalesPasswordBtn = document.getElementById('changeSalesPassword');
+        const changeSalesPasswordBtn = document = document.getElementById('changeSalesPassword');
         const newSalesPasswordError = document.getElementById('newSalesPasswordError');
 
         const newSettingsPasswordInput = document.getElementById('newSettingsPassword');
@@ -162,20 +162,39 @@
         const saveFeatureSettingsBtn = document.getElementById('saveFeatureSettings');
 
         let currentStoreSettings = {};
+        let unsubscribeSettingsPage = null; // لتخزين وظيفة إلغاء الاشتراك
 
-        // تم إزالة دالة checkPassword() واستدعائها
         async function initializePage() {
             if (!canAccessSettings()) {
                 showNotification("ليس لديك صلاحية للدخول إلى الإعدادات.", "error");
                 setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 return;
             }
-            loadSettingsToForm();
+            // استخدام onSnapshot لجلب الإعدادات في الوقت الفعلي
+            if (unsubscribeSettingsPage) {
+                unsubscribeSettingsPage();
+            }
+            unsubscribeSettingsPage = onSnapshot(settingsDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentStoreSettings = docSnap.data();
+                    console.log("Firestore Snapshot received for settings page:", currentStoreSettings); //
+                    loadSettingsToForm();
+                } else {
+                    console.warn("Settings document does not exist, using default."); //
+                    // إذا لم يكن المستند موجودًا، ستقوم loadSettings في shared.js بإنشائه بالقيم الافتراضية.
+                    // يمكننا هنا فقط التأكد من تحميلها.
+                    loadSettings().then(() => {
+                        currentStoreSettings = getSettings();
+                        loadSettingsToForm();
+                    });
+                }
+            }, (error) => {
+                console.error("Error listening to settings document on settings page:", error); //
+                showNotification("خطأ في تحميل إعدادات المتجر.", "error");
+            });
         }
 
         async function loadSettingsToForm() {
-            currentStoreSettings = getSettings();
-
             storeNameInput.value = currentStoreSettings.storeName || '';
             invoiceAddressInput.value = currentStoreSettings.invoiceAddress || '';
             invoicePhoneInput.value = currentStoreSettings.invoicePhone || '';
