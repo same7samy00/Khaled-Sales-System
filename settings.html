@@ -126,19 +126,10 @@
         </div>
     </main>
 
-    <div id="passwordModal" class="password-modal">
-        <div class="password-modal-content">
-            <h2>الرجاء إدخال كلمة المرور</h2>
-            <input type="password" id="passwordInput" placeholder="كلمة المرور">
-            <div class="error-message" id="passwordError"></div>
-            <button class="btn btn-primary" id="submitPasswordBtn">دخول</button>
-        </div>
-    </div>
-
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
-        import { auth, db, showNotification, showConfirmation, settingsDocRef, getSettings, loadSettings, canAccessSettings } from './shared.js'; // أضف loadSettings
+        import { auth, db, showNotification, showConfirmation, settingsDocRef, getSettings, loadSettings, canAccessSettings } from './shared.js';
         import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
@@ -170,42 +161,22 @@
         const toggleAccessSettings = document.getElementById('toggleAccessSettings');
         const saveFeatureSettingsBtn = document.getElementById('saveFeatureSettings');
 
-        const passwordModal = document.getElementById('passwordModal');
-        const passwordInput = document.getElementById('passwordInput');
-        const passwordError = document.getElementById('passwordError');
-        const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+        // تم إزالة الإشارات إلى عناصر مودال كلمة المرور
+        // const passwordModal = document.getElementById('passwordModal');
+        // const passwordInput = document.getElementById('passwordInput');
+        // const passwordError = document.getElementById('passwordError');
+        // const submitPasswordBtn = document.getElementById('submitPasswordBtn');
 
         let currentStoreSettings = {};
 
-        async function checkPassword() {
-            const settings = getSettings();
-            const SETTINGS_ADMIN_PASSWORD = settings.settingsPassword;
-
+        // تم إزالة دالة checkPassword() واستدعائها
+        async function initializePage() {
             if (!canAccessSettings()) {
                 showNotification("ليس لديك صلاحية للدخول إلى الإعدادات.", "error");
                 setTimeout(() => window.location.href = 'dashboard.html', 1500);
                 return;
             }
-            
-            passwordModal.style.display = 'flex';
-            passwordInput.value = '';
-            passwordError.textContent = '';
-            passwordInput.focus();
-
-            submitPasswordBtn.onclick = () => {
-                if (passwordInput.value === SETTINGS_ADMIN_PASSWORD) {
-                    passwordModal.style.display = 'none';
-                    loadSettingsToForm();
-                } else {
-                    passwordError.textContent = "كلمة المرور غير صحيحة.";
-                }
-            };
-
-            passwordInput.addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') {
-                    submitPasswordBtn.click();
-                }
-            });
+            loadSettingsToForm();
         }
 
         async function loadSettingsToForm() {
@@ -386,7 +357,7 @@
 
         loadSettings().then(() => { // انتظر تحميل الإعدادات
             updateNavigationPermissions();
-            checkPassword();
+            initializePage(); // استدعاء initializePage لبدء جلب البيانات مباشرة
         });
     </script>
 </body>
