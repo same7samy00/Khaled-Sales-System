@@ -1,13 +1,9 @@
-// 🔁 shared.js (محدث بالكامل لمشروع Firebase الجديد)
+// 🔁 shared.js بدون تسجيل الدخول (تم تعطيل الحماية بناءً على طلب المستخدم)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import {
   getAuth,
-  onAuthStateChanged,
-  signOut,
-  updatePassword,
-  EmailAuthProvider,
-  reauthenticateWithCredential
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import {
   getFirestore,
@@ -114,19 +110,7 @@ export function canAccessSalesHistory() { return currentSettings.features?.canAc
 export function canDeleteSales() { return currentSettings.features?.canDeleteSales ?? true; }
 export function canAccessSettings() { return currentSettings.features?.canAccessSettings ?? true; }
 
-// ✅ حماية الصفحات حسب حالة تسجيل الدخول
-onAuthStateChanged(auth, async (user) => {
-  await loadSettings();
-
-  const protectedPages = ['dashboard.html', 'inventory.html', 'add_product.html', 'pos.html', 'sales_history.html', 'settings.html'];
-  const currentPage = window.location.pathname.split('/').pop();
-
-  if (!user && protectedPages.includes(currentPage)) {
-    window.location.href = 'index.html';
-  } else if (user && currentPage === 'index.html') {
-    window.location.href = 'dashboard.html';
-  }
-});
+// ✅ تم تعطيل حماية الصفحات بناءً على رغبة المستخدم (لا يوجد تسجيل دخول)
 
 // ✅ تفعيل التبويب الحالي وزر تسجيل الخروج بعد التحميل
 if (typeof document !== 'undefined') {
