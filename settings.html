@@ -161,12 +161,6 @@
         const toggleAccessSettings = document.getElementById('toggleAccessSettings');
         const saveFeatureSettingsBtn = document.getElementById('saveFeatureSettings');
 
-        // تم إزالة الإشارات إلى عناصر مودال كلمة المرور
-        // const passwordModal = document.getElementById('passwordModal');
-        // const passwordInput = document.getElementById('passwordInput');
-        // const passwordError = document.getElementById('passwordError');
-        // const submitPasswordBtn = document.getElementById('submitPasswordBtn');
-
         let currentStoreSettings = {};
 
         // تم إزالة دالة checkPassword() واستدعائها
@@ -355,9 +349,9 @@
             if (settingsLink) settingsLink.style.display = canAccessSettings() ? '' : 'none';
         }
 
-        loadSettings().then(() => { // انتظر تحميل الإعدادات
+        loadSettings().then(() => {
             updateNavigationPermissions();
-            initializePage(); // استدعاء initializePage لبدء جلب البيانات مباشرة
+            initializePage();
         });
     </script>
 </body>
