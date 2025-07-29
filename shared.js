@@ -1,4 +1,4 @@
-// 🔁 shared.js (محدث للعمل مع مشروع Firebase الجديد)
+// 🔁 shared.js (محدث بالكامل لمشروع Firebase الجديد)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import {
@@ -113,7 +113,24 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// 🔄 تفعيل العنصر الحالي في القائمة الجانبية
-// وتفعيل زر تسجيل الخروج
+// ✅ تفعيل التبويب الحالي وزر تسجيل الخروج بعد التحميل
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentPath = window.location.pathname.split('/').pop();
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === currentPath) {
+        link.classList.add('active');
+      }
+    });
 
-// يمكن استكمال الكود السابق هنا إن لزم
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+      logoutButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await signOut(auth);
+        window.location.href = 'index.html';
+      });
+    }
+  });
+}
