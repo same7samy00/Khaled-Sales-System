@@ -28,20 +28,11 @@
         import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
         const loginForm = document.getElementById('loginForm');
-        // تم إزالة الإشارات إلى emailInput و passwordInput لأن الحقول لم تعد موجودة
-        // const emailInput = document.getElementById('email');
-        // const passwordInput = document.getElementById('password');
-        // تم إزالة الإشارات إلى emailError و passwordError
-        // const emailError = document.getElementById('emailError');
-        // const passwordError = document.getElementById('passwordError');
         const globalError = document.getElementById('globalError');
         const signInWithGoogleBtn = document.getElementById('signInWithGoogle');
 
         const showError = (el, msg) => { el.textContent = msg; };
         const clearErrors = () => {
-            // تم إزالة مسح أخطاء البريد الإلكتروني وكلمة المرور
-            // emailError.textContent = '';
-            // passwordError.textContent = '';
             globalError.textContent = '';
         };
 
@@ -50,15 +41,15 @@
             e.preventDefault();
             clearErrors();
 
-            // استخدام البريد الإلكتروني وكلمة المرور الافتراضية
-            const email = "admin@default.com"; // يمكنك تغيير هذا البريد إلى أي بريد إلكتروني تود استخدامه كافتراضي
-            const password = "010274"; // كلمة المرور الافتراضية التي طلبتها
+            const email = "admin@default.com"; // البريد الإلكتروني الافتراضي
+            const password = "010274"; // كلمة المرور الافتراضية
 
             try {
                 await setPersistence(auth, browserLocalPersistence);
                 await signInWithEmailAndPassword(auth, email, password);
                 showNotification("تم تسجيل الدخول بنجاح!", "success");
-                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
+                // إضافة التوجيه هنا بعد النجاح مباشرة
+                window.location.href = 'dashboard.html'; 
             } catch (error) {
                 console.error("Login Error:", error.code);
                 let errorMessage = "فشل تسجيل الدخول التلقائي.";
@@ -94,7 +85,8 @@
                 await setPersistence(auth, browserLocalPersistence);
                 await signInWithPopup(auth, provider);
                 showNotification("تم تسجيل الدخول بحساب Google بنجاح!", "success");
-                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
+                // إضافة التوجيه هنا بعد النجاح مباشرة
+                window.location.href = 'dashboard.html';
             } catch (error) {
                 console.error("Google Sign-in Error:", error.code);
                 let errorMessage = "فشل تسجيل الدخول بحساب Google.";
