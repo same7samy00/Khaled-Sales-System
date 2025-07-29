@@ -88,40 +88,53 @@
         const settingsLink = document.getElementById('settingsLink');
 
         let allProducts = [];
-        let unsubscribeProducts = null; // لتخزين وظيفة إلغاء الاشتراك
+        let unsubscribeProducts = null;
+
+        // دالة تهيئة الصفحة
+        async function initializeInventoryPage() {
+            console.log("inventory.html: Initializing Inventory Page. Calling loadSettings..."); // Updated log
+            await loadSettings(); 
+            console.log("inventory.html: loadSettings completed. Calling updateNavigationPermissions and fetchProducts."); // New log
+            updateNavigationPermissions();
+            fetchProducts(); 
+        }
 
         async function fetchProducts() {
+            console.log("fetchProducts: Attempting to fetch products...");
             productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder">جاري تحميل المنتجات...</td></tr>';
             
-            // إلغاء الاشتراك السابق لتجنب تكرار المستمعين
             if (unsubscribeProducts) {
                 unsubscribeProducts();
+                console.log("fetchProducts: Unsubscribed from previous listener.");
             }
 
             try {
                 const productsCollectionRef = collection(db, "products");
                 const q = query(productsCollectionRef, orderBy("createdAt", "desc"));
 
-                // استخدام onSnapshot لجلب البيانات في الوقت الفعلي وتحديثها
                 unsubscribeProducts = onSnapshot(q, (querySnapshot) => {
-                    console.log("Firestore Snapshot received for products."); //
+                    console.log("Firestore Snapshot received for products.");
                     allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    console.log("Fetched products:", allProducts); //
+                    console.log("Fetched products data:", allProducts);
+                    if (allProducts.length === 0) {
+                        console.log("No products found in Firestore.");
+                    }
                     renderProducts();
                 }, (error) => {
-                    console.error("Error listening to products collection: ", error); //
+                    console.error("Error listening to products collection: ", error);
                     productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تحميل المنتجات.</td></tr>';
                     showNotification("خطأ في تحميل المنتجات.", "error");
                 });
 
             } catch (e) {
-                console.error("Error setting up product listener: ", e); //
+                console.error("Error setting up product listener: ", e);
                 productsTableBody.innerHTML = '<tr><td colspan="7" class="table-placeholder error">حدث خطأ أثناء تهيئة جلب المنتجات.</td></tr>';
                 showNotification("خطأ في تهيئة جلب المنتجات.", "error");
             }
         }
 
         function renderProducts(productsToRender = null) {
+            console.log("renderProducts: Rendering products to table...");
             let filteredProducts = productsToRender;
 
             if (filteredProducts === null) {
@@ -141,6 +154,7 @@
                     );
                 }
             }
+            console.log("renderProducts: Filtered products to display:", filteredProducts);
 
             productsTableBody.innerHTML = '';
             if (filteredProducts.length === 0) {
@@ -174,20 +188,24 @@
         
         productsTableBody.addEventListener('click', (e) => {
             const editBtn = e.target.closest('.edit-btn');
-            if (editBtn && !editBtn.disabled) {
+            if (editBtn) { 
                 window.location.href = `add_product.html?id=${editBtn.dataset.id}`;
                 return;
             }
             
             const deleteBtn = e.target.closest('.delete-btn');
-            if (deleteBtn && !deleteBtn.disabled) {
+            if (deleteBtn) { 
                 const productId = deleteBtn.dataset.id;
                 showConfirmation('هل أنت متأكد أنك تريد حذف هذا المنتج؟', async () => {
                     try {
                         await deleteDoc(doc(db, "products", productId));
                         showNotification('تم حذف المنتج بنجاح!', 'success');
-                        // لا داعي لإعادة جلب كل المنتجات يدويا هنا، onSnapshot سيتولى الأمر
-                    } catch (err) {
+                    }
+                    // إضافة هذا الجزء هنا للتحقق من الصلاحيات بعد النجاح
+                    if (deleteBtn.disabled) { 
+                        showNotification("ليس لديك صلاحية لحذف المنتجات.", "error");
+                    }
+                    catch (err) {
                         console.error("Error deleting document: ", err);
                         showNotification('فشل حذف المنتج.', 'error');
                     }
@@ -225,10 +243,8 @@
             }
         }
 
-        loadSettings().then(() => {
-            fetchProducts(); // بدء جلب البيانات باستخدام onSnapshot
-            updateNavigationPermissions();
-        });
+        // استدعاء دالة التهيئة عند تحميل DOM
+        document.addEventListener('DOMContentLoaded', initializeInventoryPage);
     </script>
 </body>
 </html>
