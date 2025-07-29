@@ -183,6 +183,7 @@
             let status = 'متوفر';
             if (quantity <= 0) status = 'نفد المخزون';
             else if (quantity > 0 && quantity <= 10) status = 'قليل المخزون';
+            else status = 'متوفر';
 
             const productData = {
                 name: name,
