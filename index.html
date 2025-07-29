@@ -39,6 +39,7 @@
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
+        console.log("Login page script loaded."); // تتبع التحميل
         import { auth, showNotification } from "./shared.js";
         import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
@@ -50,6 +51,8 @@
         const globalError = document.getElementById('globalError');
         const signInWithGoogleBtn = document.getElementById('signInWithGoogle');
 
+        console.log("loginForm element:", loginForm); // تتبع وجود العنصر
+
         const showError = (el, msg) => { el.textContent = msg; };
         const clearErrors = () => {
             emailError.textContent = '';
@@ -59,6 +62,7 @@
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log("Login form submitted!"); // تتبع الإرسال
             clearErrors();
 
             const email = emailInput.value.trim();
@@ -73,11 +77,15 @@
                 showError(passwordError, 'الرجاء إدخال كلمة المرور.');
                 valid = false;
             }
-            if (!valid) return;
+            if (!valid) {
+                showNotification("يرجى ملء الحقول المطلوبة بشكل صحيح.", "warning", 3000); // إظهار إشعار
+                return;
+            }
 
             try {
                 await setPersistence(auth, browserLocalPersistence);
                 await signInWithEmailAndPassword(auth, email, password);
+                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
             } catch (error) {
                 console.error("Login Error:", error.code);
                 switch (error.code) {
@@ -96,16 +104,18 @@
                         showError(globalError, 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
                         break;
                 }
-                showNotification("فشل تسجيل الدخول. " + (globalError.textContent || emailError.textContent || passwordError.textContent), "error", 5000);
+                showNotification("فشل تسجيل الدخول. " + (globalError.textContent || emailError.textContent || passwordError.textContent), "error", 5000); //
             }
         });
 
         signInWithGoogleBtn.addEventListener('click', async () => {
+            console.log("Google Sign-in button clicked!"); // تتبع الضغط
             const provider = new GoogleAuthProvider();
             try {
                 await setPersistence(auth, browserLocalPersistence);
                 await signInWithPopup(auth, provider);
-                showNotification("تم تسجيل الدخول بحساب Google بنجاح!", "success");
+                showNotification("تم تسجيل الدخول بحساب Google بنجاح!", "success"); //
+                // التوجيه يتم معالجته بواسطة onAuthStateChanged في shared.js
             } catch (error) {
                 console.error("Google Sign-in Error:", error.code);
                 let errorMessage = "فشل تسجيل الدخول بحساب Google.";
@@ -126,7 +136,7 @@
                         errorMessage = `حدث خطأ: ${error.message}`;
                         break;
                 }
-                showNotification(errorMessage, "error", 5000);
+                showNotification(errorMessage, "error", 5000); //
             }
         });
     </script>
