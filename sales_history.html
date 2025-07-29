@@ -89,7 +89,7 @@
     <div id="notification-container"></div>
     <script src="shared.js" type="module"></script>
     <script type="module">
-        import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, where, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         import { db, showNotification, showConfirmation, getSettings, loadSettings, canDeleteSales, canAccessSalesHistory, canAccessSettings } from './shared.js';
 
         const salesTableBody = document.getElementById('salesTableBody');
@@ -105,8 +105,8 @@
         const settingsLink = document.getElementById('settingsLink');
 
         let allSales = [];
+        let unsubscribeSales = null;
 
-        // تم إزالة دالة checkPassword() واستدعائها
         async function initializePage() {
             if (!canAccessSalesHistory()) {
                 showNotification("ليس لديك صلاحية للدخول إلى سجل المبيعات.", "error");
@@ -114,7 +114,6 @@
                 return;
             }
             fetchSales();
-            // تأكد من تحديث حالة الزر بناءً على الصلاحيات بعد تحميل الإعدادات
             if (!canDeleteSales()) {
                 deleteAllSalesBtn.disabled = true;
                 deleteAllSalesBtn.textContent = 'ليس لديك صلاحية الحذف';
@@ -123,6 +122,11 @@
 
         async function fetchSales() {
             salesTableBody.innerHTML = '<tr><td colspan="8" class="table-placeholder">جاري تحميل سجل المبيعات...</td></tr>';
+            
+            if (unsubscribeSales) {
+                unsubscribeSales();
+            }
+
             try {
                 const salesCollectionRef = collection(db, "sales");
                 let q = query(salesCollectionRef, orderBy("saleDate", "desc"));
@@ -139,17 +143,25 @@
                     q = query(q, where("saleDate", "<=", endDate));
                 }
 
-                const querySnapshot = await getDocs(q);
-                allSales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderSales(allSales);
+                unsubscribeSales = onSnapshot(q, (querySnapshot) => {
+                    console.log("Firestore Snapshot received for sales history."); //
+                    allSales = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    console.log("Fetched sales:", allSales); //
+                    renderSales(allSales);
+                }, (error) => {
+                    console.error("Error listening to sales collection: ", error); //
+                    salesTableBody.innerHTML = '<tr><td colspan="8" class="table-placeholder error">حدث خطأ أثناء تحميل سجل المبيعات.</td></tr>';
+                    showNotification("خطأ في تحميل سجل المبيعات.", "error");
+                });
             } catch (e) {
-                console.error("Error fetching sales: ", e);
-                salesTableBody.innerHTML = '<tr><td colspan="8" class="table-placeholder error">حدث خطأ أثناء تحميل سجل المبيعات.</td></tr>';
-                showNotification("خطأ في تحميل سجل المبيعات.", "error");
+                console.error("Error setting up sales history listener: ", e); //
+                salesTableBody.innerHTML = '<tr><td colspan="8" class="table-placeholder error">حدث خطأ أثناء تهيئة جلب سجل المبيعات.</td></tr>';
+                showNotification("خطأ في تهيئة جلب سجل المبيعات.", "error");
             }
         }
 
         function renderSales(salesToRender) {
+            console.log("Rendering sales:", salesToRender); //
             salesTableBody.innerHTML = '';
             if (salesToRender.length === 0) {
                 salesTableBody.innerHTML = '<tr><td colspan="8" class="table-placeholder">لا توجد عمليات بيع.</td></tr>';
@@ -241,8 +253,7 @@
                     try {
                         await deleteDoc(doc(db, "sales", saleId));
                         showNotification('تم حذف عملية البيع بنجاح!', 'success');
-                        allSales = allSales.filter(s => s.id !== saleId);
-                        renderSales(allSales);
+                        // onSnapshot سيتولى تحديث allSales وإعادة العرض
                     } catch (err) {
                         console.error("Error deleting sale: ", err);
                         showNotification('فشل حذف عملية البيع.', "error");
@@ -275,8 +286,7 @@
                     });
                     await batch.commit();
                     showNotification('تم حذف جميع عمليات البيع بنجاح!', 'success');
-                    allSales = [];
-                    renderSales([]);
+                    // onSnapshot سيتولى تحديث allSales وإعادة العرض
                 } catch (err) {
                     console.error("Error deleting all sales: ", err);
                     showNotification('فشل حذف جميع عمليات البيع.', "error");
